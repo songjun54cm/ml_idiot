@@ -1,0 +1,1 @@
+THEANO_FLAGS=mode=FAST_COMPILE,optimizer=fast_compile,optimizer_excluding=inplace,reoptimize_unpickled_function=False,device=gpu3,floatX=float32,allow_gc=False,scan.allow_gc=False,nvcc.flags=-use_fast_math python $*

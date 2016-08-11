@@ -1,0 +1,11 @@
+*.asv
+*.mat
+*.pyc
+*.txt
+!*result.txt
+~*
+*.pkl
+*.data
+*.lock
+data/*
+.idea/*
