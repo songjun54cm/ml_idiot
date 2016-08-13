@@ -81,3 +81,20 @@ def set_nn_state(state):
         state['checkpoint_out_dir'] = os.path.join(out_folder, 'check_point')
         os.makedirs(state['checkpoint_out_dir'])
     return state
+
+def setup_ml_state(state):
+    if not state.has_key('out_folder'):
+        num = 1
+        out_prefix = os.path.join(state['proj_folder'], 'output', state['model_name'], state['data_set_name'], 'out')
+        state['out_prefix'] = out_prefix
+        out_folder = os.path.join(out_prefix, str(num))
+        while os.path.exists(out_folder):
+            num += 1
+            out_folder = os.path.join(out_prefix, str(num))
+        os.makedirs(out_folder)
+        state['out_folder'] = out_folder
+        state['train_log_file'] = os.path.join(out_folder, 'train_log.log')
+        state['valid_log_file'] = os.path.join(out_folder, 'valid_log.log')
+        state['checkpoint_out_dir'] = os.path.join(out_folder, 'check_point')
+        os.makedirs(state['checkpoint_out_dir'])
+    return state
