@@ -8,7 +8,8 @@ class HMMTrainer(object):
         pass
 
     def train(self, model, data_provider):
-        train_split = data_provider.split['train']
+        train_split = data_provider.splits['train']
+        # print train_split.keys()
         obs_seqs = train_split['obs_seqs']
         state_seqs = train_split['state_seqs']
 

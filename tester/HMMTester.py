@@ -13,7 +13,7 @@ class HMMTester(object):
         gth_states = list()
         pred_states = list()
 
-        for si in xrange(obs_seqs):
+        for si in xrange(len(obs_seqs)):
             obss = obs_seqs[si]
             states = state_seqs[si]
             pred_ss = model.predict_states(obss, states)

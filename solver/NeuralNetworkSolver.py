@@ -12,6 +12,19 @@ class NeuralNetworkSolver(BasicSolver):
     def __init__(self, state):
         super(NeuralNetworkSolver, self).__init__(state)
         self.top_valid_cost = np.inf
+        self.batch_size = state['batch_size']
+        self.max_epoch = state['max_epoch']
+        self.valid_epoch = state['valid_epoch']
+        self.valid_batch_size = state['valid_batch_size']
+        self.loss_scale = state['loss_scale']
+
+        self.last_loss = np.inf
+        self.top_valid_cost = np.inf
+        self.valid_count = 0
+        self.valid_sample_count = 0
+        self.iter_count = 0
+        self.smooth_valid_loss = dict()
+        self.grad_cache = dict()
         # self.top_valid_mrr = 0
         # self.top_valid_mrank = np.inf
 

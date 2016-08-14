@@ -48,7 +48,9 @@ class BasicDataProvider(object):
     def load(self, file_path):
         with open(file_path, 'rb') as f:
             d = pickle.load(f)
-        self.splits = d['splits']
+        # self.splits = d['splits']
+        for key in self.__dict__.keys():
+            self.__dict__[key] = d[key]
 
     def iter_split_batches(self, batch_size, split):
         batch = list()

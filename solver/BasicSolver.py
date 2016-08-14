@@ -22,20 +22,8 @@ class BasicSolver(object):
             self.train_log_file = open(state['train_log_file'], 'ab')
             self.valid_log_file = open(state['valid_log_file'], 'ab')
 
-        self.batch_size = state['batch_size']
-        self.max_epoch = state['max_epoch']
-        self.valid_epoch = state['valid_epoch']
-        self.valid_batch_size = state['valid_batch_size']
-        self.loss_scale = state['loss_scale']
 
-        self.last_loss = np.inf
-        self.top_valid_cost = np.inf
-        self.valid_count = 0
-        self.valid_sample_count = 0
-        self.iter_count = 0
-        self.smooth_valid_loss = dict()
         self.last_save_model_file_path = None
-        self.grad_cache = dict()
 
     def log_train_message(self, message):
         print message
