@@ -4,6 +4,13 @@ from BasicLayer import BasicLayer, micro_activate, get_action_function, get_grad
 
 class FullConnect(BasicLayer):
     def __init__(self, state, rng=np.random.RandomState(1234)):
+        """
+        state = {
+            'activation_func': ,
+            'input_size': ,
+            'output_size':
+        }
+        """
         super(FullConnect, self).__init__(state, rng)
         self.activation = get_action_function(state['activation_func'])
         self.grad_act = get_gradient_function(state['activation_func'])
@@ -48,7 +55,7 @@ class FullConnect(BasicLayer):
         input_size = 2
         x_num = 100
         output_size = 3
-        layer_stata = {
+        layer_state = {
             'layer_name': 'full',
             'input_size': input_size,
             'output_size': output_size,
@@ -58,7 +65,7 @@ class FullConnect(BasicLayer):
         gth_out = np.random.RandomState(2).rand(x_num, output_size)
 
         gdc_data = {
-            'layer_state': layer_stata,
+            'layer_state': layer_state,
             'input_data': {'input_x':input_x},
             'gth_out': gth_out
         }

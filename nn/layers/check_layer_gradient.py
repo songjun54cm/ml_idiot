@@ -91,6 +91,9 @@ def get_layer(params):
         layer_class = FullConnect
     elif params['Layer_name'] == 'StackFullConnect':
         layer_class = StackFullConnect
+    elif params['Layer_name'] == 'RNN':
+        from RNN import RNN
+        layer_class = RNN
 
     gdc_data = layer_class.gdc_data()
     layer = layer_class(gdc_data['layer_state'])
@@ -104,7 +107,7 @@ def main(params):
 
 if __name__=='__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('-L', '--Layer', dest='Layer_name', type=str, default='FullConnect', help='FullConnect/LSTM/Attention/StackFullConnect')
+    parser.add_argument('-L', '--Layer', dest='Layer_name', type=str, default='RNN', help='FullConnect/LSTM/Attention/StackFullConnect/RNN')
 
     args = parser.parse_args()
     params = vars(args)
