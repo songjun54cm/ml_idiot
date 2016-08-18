@@ -4,6 +4,19 @@ from BasicLayer import BasicLayer, micro_activate, get_action_function, get_grad
 
 class LSTM(BasicLayer):
     def __init__(self, state, rng=np.random.RandomState(1234)):
+        """
+
+        :param state: {
+            'layer_name':
+            'lstm_input_size':
+            'hidden_size':
+            'gate_act':
+            'hidden_act':
+            '
+         }
+        :param rng:
+        :return:
+        """
         super(LSTM, self).__init__(state, rng)
 
     def create_variables(self):

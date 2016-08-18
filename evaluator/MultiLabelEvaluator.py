@@ -15,6 +15,12 @@ class MultiLabelEvaluator(BasicEvaluator):
             logical_pred = pred
         return logical_gth, logical_pred
 
+    def f1_score(self, gth, pred):
+        p = self.accuracy(gth, pred)
+        r = self.true_true_rate(gth, pred)
+        f1 = 2*p*r/(p+r)
+        return f1
+
     def true_true_rate(self, gth, pred):
         logical_gth, logical_pred = self.form_logical_value(gth, pred)
         gth_true_num = np.where(logical_gth)[0].shape[0]

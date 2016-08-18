@@ -12,5 +12,5 @@ class BasicTester(object):
     def detect_to_save(self, res, model):
         raise NotImplementedError
 
-    def get_metrics(self, res):
+    def get_metrics(self, res, metrics):
         raise NotImplementedError

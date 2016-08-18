@@ -1,11 +1,11 @@
 __author__ = 'SongJun-Dell'
 from collections import OrderedDict
 from ml_idiot.evaluator.MultiLabelEvaluator import MultiLabelEvaluator
+import numpy as np
 
 class HMMTester(object):
     def __init__(self):
         self.evaluator = MultiLabelEvaluator()
-        pass
 
     def test(self, model, test_data, id_to_fea, metrics):
         obs_seqs = test_data['obs_seqs']
@@ -18,27 +18,30 @@ class HMMTester(object):
             states = state_seqs[si]
             pred_ss = model.predict_states(obss, states)
             gth_states += states
-            pred_states += pred_ss
+            pred_states = np.concatenate([pred_states, pred_ss])
 
         res_feas = {
-            'gth_state_feas': id_to_fea[gth_states],
-            'pred_state_feas': id_to_fea[pred_states]
+            'gth_feas': id_to_fea[gth_states],
+            'pred_feas': id_to_fea[pred_states.astype(int)]
         }
 
         res = self.get_metrics(res_feas, metrics)
         return res
 
     def get_metrics(self, res, metrics):
-        gth_state_feas = res['gth_state_feas']
-        pred_state_feas = res['pred_state_feas']
+        gth_state_feas = res['gth_feas']
+        pred_state_feas = res['pred_feas']
         res = OrderedDict()
         for met in metrics:
             met_str, met_value = self.get_metric_value(met, gth_state_feas, pred_state_feas)
             res[met_str] = met_value
+            # print met_value
         return res
 
     def get_metric_value(self, met, gth_state_feas, pred_state_feas):
-        if met == 'tt':
+        if met == 'f1':
+            return 'F1', self.evaluator.f1_score(gth_state_feas, pred_state_feas)
+        elif met == 'tt':
             return 'True-True', self.evaluator.true_true_rate(gth_state_feas, pred_state_feas)
         elif met == 'tf':
             return 'True-False', self.evaluator.true_false_rate(gth_state_feas, pred_state_feas)

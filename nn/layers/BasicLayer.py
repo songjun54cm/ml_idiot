@@ -16,6 +16,12 @@ def sigmoid_func(x):
     return 1.0/(1.0+np.exp(-x))
 def grad_sigmoid(z):
     return z*(1-z)
+
+def sigmoid10_func(x):
+    return 1.0/(1.0+np.exp(-10*x))
+def grad_sigmoid10(z):
+    return 10*z*(1-z)
+
 def softmax_func(x, axis=1):
     maxes = np.amax(x, axis=axis, keepdims=True)
     e = np.exp(x - maxes)
@@ -64,6 +70,8 @@ def get_action_function(fun_name):
         return sigmoid_func
     elif fun_name == 'softmax':
         return softmax_func
+    elif fun_name == 'sigmoid10':
+        return sigmoid10_func
     else:
         StandardError("error function name")
     return
@@ -85,6 +93,8 @@ def get_gradient_function(fun_name):
         return grad_sigmoid
     elif fun_name == 'softmax':
         return grad_softmax
+    elif fun_name == 'sigmoid10':
+        return grad_sigmoid10
     else:
         StandardError("error function name")
     return

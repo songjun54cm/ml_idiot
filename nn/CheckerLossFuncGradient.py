@@ -19,3 +19,36 @@ class CheckerLossFuncGradient(CheckerGraident):
 
     def get_gc_params(self):
         return self.input_data
+
+def main(func_name):
+    import numpy as np
+    if func_name == 'distance_func':
+        from ml_idiot.utils.loss_functions import distance_loss, grad_distance_loss
+        target_fea = np.random.random((5,3))
+        gc_data = {'pred_feas': np.random.random((5,3))}
+        def loss_func(data, mode=None):
+            loss = distance_loss(data['pred_feas'], target_fea)
+            train_cache = data
+            return loss, train_cache
+        def grad_func(cache):
+            grad = grad_distance_loss(cache['pred_feas'], target_fea)
+            return {'pred_feas': grad}
+
+    if func_name == 'tanh':
+        from ml_idiot.nn.layers.BasicLayer import tanh_func, grad_tanh
+        gc_data = {'in_vecs': np.random.random((5,3))}
+        def loss_func(data, mode=None):
+            loss = np.sum(tanh_func(data['in_vecs']))
+            train_cache = data
+            return loss, train_cache
+        def grad_func(cache):
+            grad = grad_tanh(tanh_func(cache['in_vecs']))
+            return {'in_vecs': grad}
+
+    gck = CheckerLossFuncGradient(loss_func, grad_func, gc_data)
+    gck.check_gradient()
+
+if __name__=='__main__':
+    # func_name = 'distance_func'
+    func_name = 'tanh'
+    main(func_name)

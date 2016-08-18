@@ -10,11 +10,11 @@ class HMMTrainer(object):
     def train(self, model, data_provider):
         train_split = data_provider.splits['train']
         # print train_split.keys()
-        obs_seqs = train_split['obs_seqs']
-        state_seqs = train_split['state_seqs']
+        # obs_seqs = train_split['obs_seqs']
+        # state_seqs = train_split['state_seqs']
 
         t0 = time.time()
-        model.fit(obs_seqs, state_seqs)
+        train_res = model.fit(train_split)
         eclipse_time = time.time() - t0
-        message = 'train model with %d sequences in %f seconds' % (len(obs_seqs), eclipse_time)
+        message = 'train model with %d sequences in %f seconds' % (train_res['sample_num'], eclipse_time)
         return message

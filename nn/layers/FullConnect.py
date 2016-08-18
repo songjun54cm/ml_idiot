@@ -30,16 +30,24 @@ class FullConnect(BasicLayer):
     #     return grad_params
 
     def activate(self, input_x):
-        out_vec = micro_activate(input_x, self.W, self.b, self.activation)
-        return out_vec
+        out_vecs = micro_activate(input_x, self.W, self.b, self.activation)
+        return out_vecs
 
     def forward(self, input_x):
-        return self.activate(input_x)
+        out_vecs = self.activate(input_x)
+        cache = {
+            'input_x': input_x,
+            'layer_out': out_vecs
+        }
+        return out_vecs, cache
 
-    def backward(self, grad_params, in_vecs, grad_out):
-        grad_params[self.W_name] += in_vecs.transpose().dot(grad_out)
-        grad_params[self.b_name] += np.sum(grad_out, axis=0, keepdims=True)
-        grad_in_vecs = grad_out.dot(self.W.transpose())
+    def backward(self, grad_params, grad_out, cache):
+        in_vecs = cache['input_x']
+        out_vecs = cache['layer_out']
+        tmp_grad = grad_out*self.grad_act(out_vecs)
+        grad_params[self.W_name] += in_vecs.transpose().dot(tmp_grad)
+        grad_params[self.b_name] += np.sum(tmp_grad, axis=0, keepdims=True)
+        grad_in_vecs = tmp_grad.dot(self.W.transpose())
         return grad_in_vecs
 
     """
@@ -85,7 +93,6 @@ class FullConnect(BasicLayer):
         grad_params = dict()
         for p in self.params.keys():
             grad_params[p] = np.zeros(self.params[p].shape)
-        input_x = cache['input_x']
         # layer_out = cache['layer_out']
-        self.backward(grad_params, input_x, grad_out)
+        self.backward(grad_params, grad_out, cache)
         return grad_params

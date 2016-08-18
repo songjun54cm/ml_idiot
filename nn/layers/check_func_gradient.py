@@ -97,7 +97,8 @@ def main(params):
 
 if __name__=='__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('-f', '--function', dest='function', type=str, default='softmax', help='identity/tanh/relu/sigmoid/softmax')
+    parser.add_argument('-f', '--function', dest='function', type=str, default='sigmoid10',
+                        help='identity/tanh/relu/sigmoid/sigmoid10/softmax')
 
     args = parser.parse_args()
     params = vars(args)

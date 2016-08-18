@@ -52,14 +52,29 @@ class BasicDataProvider(object):
         for key in self.__dict__.keys():
             self.__dict__[key] = d[key]
 
-    def iter_split_batches(self, batch_size, split):
-        batch = list()
-        datas = self.get_split(split)
-        for d in datas:
-            batch.append(d)
-            if len(batch) >= batch_size:
-                yield batch
-                batch = list()
+    # def iter_split_batches(self, batch_size, split):
+    #     batch = list()
+    #     datas = self.get_split(split)
+    #     for d in datas:
+    #         batch.append(d)
+    #         if len(batch) >= batch_size:
+    #             yield batch
+    #             batch = list()
+    #
+    #     if len(batch) > 0:
+    #         yield batch
 
-        if len(batch) > 0:
-            yield batch
+    def iter_split_batches(self, batch_size, split, rng=random.Random(1234)):
+        split_size = len(self.splits[split])
+        idxs = range(split_size)
+        rng.shuffle(idxs)
+        split_datas = self.splits[split]
+        start_pos = 0
+        while start_pos < split_size:
+            end_pos = start_pos + batch_size
+            iter_datas = [split_datas[idxs[id]] for id in xrange(start_pos, min(split_size,end_pos))]
+            start_pos = end_pos
+            yield self.form_data(iter_datas)
+
+    def form_data(self, batch_data):
+        return batch_data

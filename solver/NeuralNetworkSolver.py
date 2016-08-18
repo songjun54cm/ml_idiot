@@ -56,13 +56,12 @@ class NeuralNetworkSolver(BasicSolver):
                     res = self.validate_on_split(model, data_provider, split='train_valid')
 
                     # validate on the validate data set
-                    res = self.validate_on_split(model, data_provider, split='valid')
+                    valid_res = self.validate_on_split(model, data_provider, split='valid')
 
                     # validate on the test data set
                     res = self.validate_on_split(model, data_provider, split='test')
 
-                    self.save_or_not(res, model)
-
+                    self.save_or_not(valid_res, model)
         return self.last_save_model_file_path
 
     def update_smooth_train_loss(self, new_loss):
@@ -107,19 +106,16 @@ class NeuralNetworkSolver(BasicSolver):
         t0 = time.time()
         res = self.tester.test_on_split(model, data_provider, split)
         valid_num = res['sample_num']
-        metrics, message = self.tester.get_metrics(res)
-        self.log_message(message)
-        # valid_loss = res['loss']
-        # if self.valid_count == 1:
-        #     self.smooth_valid_loss[split] = valid_loss
-        # else:
-        #     self.smooth_valid_loss[split] = 0.99 * self.smooth_valid_loss[split] + 0.01 * valid_loss
+        metrics = self.tester.get_metrics(res, self.metrics)
+        message = ''
+        for key,value in metrics.iteritems():
+            message += '%s: %f ' % (key, value)
         time_eclipse = time.time() - t0
-        # message = 'evaluate %d %s samples in %.3fs and get loss %f (smooth %f).' % (valid_num, split, time_eclipse, valid_loss, self.smooth_valid_loss)
-        message = 'evaluate %d %s samples in %.3fs.' % (valid_num, split, time_eclipse)
+        message = 'evaluate %d %s samples in %.3fs. ' % (valid_num, split, time_eclipse) + message
         self.log_message(message)
+
         results = dict()
-        results.update(res)
+        # results.update(res)
         results.update(metrics)
         return results
 
