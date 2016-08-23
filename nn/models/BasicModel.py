@@ -3,6 +3,12 @@ import random
 import numpy as np
 import cPickle as pickle
 from ml_idiot.utils.utils import get_data_splits
+def create_model(model_class, model_file_path):
+    model_dump = pickle.load(open(model_file_path,'rb'))
+    state = model_dump['state']
+    model = model_class(state)
+    model.load_from_dump(model_dump)
+    return model
 
 def get_model_batch_test_result(model, batch_data):
     res = model.test_on_batch(batch_data)
