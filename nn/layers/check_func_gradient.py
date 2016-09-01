@@ -1,6 +1,7 @@
 import argparse
 import numpy as np
-from BasicLayer import get_action_function, get_gradient_function, get_grad_softmax
+from BasicLayer import get_action_function, get_gradient_function
+from BasicLayer import get_grad_softmax
 __author__ = 'SongJun-Dell'
 
 def get_check_data():
@@ -97,7 +98,7 @@ def main(params):
 
 if __name__=='__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('-f', '--function', dest='function', type=str, default='sigmoid10',
+    parser.add_argument('-f', '--function', dest='function', type=str, default='softmax',
                         help='identity/tanh/relu/sigmoid/sigmoid10/softmax')
 
     args = parser.parse_args()

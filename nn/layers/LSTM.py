@@ -70,6 +70,18 @@ class LSTM(BasicLayer):
     #     self.add_grad_param(grad_params, np.zeros(self.default_cell.shape), 'default_cell')
     #     return grad_params
 
+    def update(self, layer):
+        self.Win.setfield(layer.Win, dtype=self.Win.dtype)
+        self.bin.setfield(layer.bin, dtype=self.bin.dtype)
+        self.Wfo.setfield(layer.Wfo, dtype=self.Wfo.dtype)
+        self.bfo.setfield(layer.bfo, dtype=self.bfo.dtype)
+        self.Wou.setfield(layer.Wou, dtype=self.Wou.dtype)
+        self.bou.setfield(layer.bou, dtype=self.bou.dtype)
+        self.Wh.setfield(layer.Wh, dtype=self.Wh.dtype)
+        self.bh.setfield(layer.bh, dtype=self.bh.dtype)
+        self.default_out.setfield(layer.default_out, dtype=self.default_out.dtype)
+        self.default_cell.setfield(layer.default_cell, dtype=self.default_cell.dtype)
+
     def activate(self, current_input_vecs, prev_out, prev_cell):
         # get memory cell and previous hidden output
         in_vecs = np.hstack([prev_out, current_input_vecs])
@@ -110,19 +122,22 @@ class LSTM(BasicLayer):
             hidden_out[i:i+1,:] = lstm_prev_out
         return hidden_out, lstm_caches
 
-    def backward_whole_sequence(self, grad_params, grad_hidden_out_vecs, caches):
+    def backward_whole_sequence(self, grad_params, grad_hidden_out_vecs, caches, grad_cells=None):
         """
         :param grad_hidden_out_vecs: (sequence_size, hidden_size)
         :param caches:
         :return:
         """
-        grad_prev_cell = None
+        if grad_cells is None:
+            grad_cells = np.zeros((len(caches), self.state['hidden_size']))
+        # grad_prev_cell = np.zeros(self.default_cell.shape)
         grad_recurrent_in_vecs = np.zeros((len(caches), self.state['lstm_input_size']-self.state['hidden_size']))
         for ci in reversed(xrange(len(caches))):
             cache = caches[ci]
-            grad_in_vec, grad_prev_cell = self.backward_step(grad_params, grad_hidden_out_vecs[ci:ci+1,:], cache, grad_prev_cell)
+            grad_in_vec, grad_prev_cell = self.backward_step(grad_params, grad_hidden_out_vecs[ci:ci+1,:], cache, grad_cells[ci:ci+1,:])
             if ci>0:
                 grad_hidden_out_vecs[ci-1:ci,:] += grad_in_vec[:, :self.state['hidden_size']]
+                grad_cells[ci-1:ci,:] += grad_prev_cell
             else:
                 grad_init_hidden_out = grad_in_vec[:, :self.state['hidden_size']]
                 grad_params[self.default_cell_name] += grad_prev_cell
@@ -167,3 +182,48 @@ class LSTM(BasicLayer):
         grad_in_vec += grad_hidden_vec.dot(self.Wh.transpose())
 
         return grad_in_vec, grad_prev_cell
+
+    @staticmethod
+    def gdc_data():
+        x_size = 2
+        hidden_size =3
+        input_size = x_size + hidden_size
+        x_num = 10
+        layer_state = {
+            'layer_name': 'gru',
+            'x_size': x_size,
+            'lstm_input_size': input_size,
+            'hidden_size': hidden_size,
+            'gate_act': 'tanh',
+            'hidden_act': 'tanh'
+
+        }
+        input_x = np.random.RandomState(1).rand(x_num, x_size)
+        gth_out = np.random.RandomState(2).rand(x_num, hidden_size)
+
+        gdc_data = {
+            'layer_state': layer_state,
+            'input_data': {'input_x': input_x},
+            'gth_out': gth_out,
+        }
+        return gdc_data
+
+    def gdc_activate(self, input_data):
+        input_x = input_data['input_x']
+        layer_out, layer_cache = self.forward_sequence(input_x)
+        cache = {
+            'layer_out': layer_out,
+            'input_x': input_x,
+            'layer_cache': layer_cache
+        }
+        return layer_out, cache
+
+    def gdc_backward(self, grad_out, cache):
+        grad_params = dict()
+        for p in self.params.keys():
+            grad_params[p] = np.zeros(self.params[p].shape)
+        input_x = cache['input_x']
+        layer_cache = cache['layer_cache']
+        grad_in_vecs = self.backward_whole_sequence(grad_params, grad_out, layer_cache)
+        grad_params['input_x'] = grad_in_vecs
+        return grad_params

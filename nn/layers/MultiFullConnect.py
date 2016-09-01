@@ -1,8 +1,8 @@
 __author__ = 'SongJun-Dell'
 import numpy as np
-from BasicLayer import BasicLayer, micro_activate, get_action_function, get_gradient_function, get_grad_softmax
+from BasicLayer import BasicLayer, micro_activate, get_action_function, get_gradient_function
 
-class FullConnect(BasicLayer):
+class MultiFullConnect(BasicLayer):
     def __init__(self, state, rng=np.random.RandomState(1234)):
         """
         state = {
@@ -11,18 +11,18 @@ class FullConnect(BasicLayer):
             'output_size':
         }
         """
-        super(FullConnect, self).__init__(state, rng)
+        super(MultiFullConnect, self).__init__(state, rng)
         self.activation = get_action_function(state['activation_func'])
         self.grad_act = get_gradient_function(state['activation_func'])
+        self.axes_num = len(state['shape'])
         self.create_variables()
 
     def create_variables(self):
         # self.W = add_to_params(self.params, init_matrix((self.state['input_size'], self.state['output_size']),rng=self.rng, name=self.get_variable_name('W')))
-        self.W, self.W_name = self.add_params((self.state['input_size'], self.state['output_size']), 'W')
+        self.W, self.W_name = self.add_params(self.state['shape'], 'W')
         self.regularize_param_names.append(self.W_name)
-        self.state['bias'] = self.state.get('bias', 1)
-        if self.state['bias']:
-            self.b, self.b_name = self.add_params((1, self.state['output_size']), 'b')
+
+        self.b, self.b_name = self.add_params((1,)+self.state['shape'][:-2]+self.state['shape'][-1:], 'b')
 
     # def init_grads(self):
     #     grad_params = dict()
@@ -30,16 +30,8 @@ class FullConnect(BasicLayer):
     #     self.add_grad_param(grad_params, np.zeros(self.b.shape), 'b')
     #     return grad_params
 
-    def update(self, layer):
-        self.W.setfield(layer.W, dtype=self.W.dtype)
-        if self.state['bias']:
-            self.b.setfield(layer.b, dtype=self.b.dtype)
-
     def activate(self, input_x):
-        if self.state['bias']:
-            out_vecs = micro_activate(input_x, self.W, self.b, self.activation)
-        else:
-            out_vecs = micro_activate(input_x, self.W, 0.0, self.activation)
+        out_vecs = micro_activate(input_x, self.W, self.b, self.activation)
         return out_vecs
 
     def forward(self, input_x):
@@ -53,14 +45,10 @@ class FullConnect(BasicLayer):
     def backward(self, grad_params, grad_out, cache):
         in_vecs = cache['input_x']
         out_vecs = cache['layer_out']
-        if self.state['activation_func'] == 'softmax':
-            tmp_grad = get_grad_softmax(out_vecs, grad_out)
-        else:
-            tmp_grad = grad_out*self.grad_act(out_vecs, grad_z=grad_out)
-        grad_params[self.W_name] += in_vecs.transpose().dot(tmp_grad)
-        if self.state['bias']:
-            grad_params[self.b_name] += np.sum(tmp_grad, axis=0, keepdims=True)
-        grad_in_vecs = tmp_grad.dot(self.W.transpose())
+        tmp_grad = grad_out*self.grad_act(out_vecs)
+        grad_params[self.W_name] += (in_vecs.transpose().dot(tmp_grad.swapaxes(0, self.axes_num-2))).swapaxes(0,1)
+        grad_params[self.b_name] += np.sum(tmp_grad, axis=0, keepdims=True)
+        grad_in_vecs = np.sum(np.diagonal(tmp_grad.dot(self.W.swapaxes(-1, -2)), axis1=1, axis2=2), axis=-1)
         return grad_in_vecs
 
     """
@@ -73,17 +61,19 @@ class FullConnect(BasicLayer):
     """
     @staticmethod
     def gdc_data():
-        input_size = 2
+        input_size = 3
         x_num = 100
-        output_size = 3
+        output_size = 2
+        multi_slice = 5
         layer_state = {
-            'layer_name': 'full',
+            'layer_name': 'multi_full',
             'input_size': input_size,
             'output_size': output_size,
-            'activation_func': 'tanh'
+            'activation_func': 'identity',
+            'shape': (multi_slice, input_size, output_size)
         }
         input_x = np.random.RandomState(1).rand(x_num, input_size)
-        gth_out = np.random.RandomState(2).rand(x_num, output_size)
+        gth_out = np.random.RandomState(2).rand(x_num, multi_slice, output_size)
 
         gdc_data = {
             'layer_state': layer_state,

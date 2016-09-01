@@ -2,24 +2,24 @@ __author__ = 'SongJun-Dell'
 import numpy as np
 def identity_func(x):
     return x
-def grad_identity(z):
+def grad_identity(z, grad_z=None):
     return np.ones(z.shape)
 def tanh_func(x):
     return np.tanh(x)
-def grad_tanh(z):
+def grad_tanh(z, grad_z=None):
     return 1-z**2
 def relu_func(x):
     return np.maximum(x, 0)
-def grad_relu(z):
+def grad_relu(z, grad_z=None):
     return z>0
 def sigmoid_func(x):
     return 1.0/(1.0+np.exp(-x))
-def grad_sigmoid(z):
+def grad_sigmoid(z, grad_z=None):
     return z*(1-z)
 
 def sigmoid10_func(x):
     return 1.0/(1.0+np.exp(-10*x))
-def grad_sigmoid10(z):
+def grad_sigmoid10(z, grad_z=None):
     return 10*z*(1-z)
 
 def softmax_func(x, axis=1):
@@ -27,6 +27,7 @@ def softmax_func(x, axis=1):
     e = np.exp(x - maxes)
     p = e / np.sum(e, axis=axis, keepdims=True)
     return p
+
 def grad_softmax(z):
     # return z*(1-z)
     # z must be (N, d)
@@ -38,7 +39,8 @@ def grad_softmax(z):
         for i in xrange(z.shape[0]):
             g[i] += grad_softmax(z[i:i+1,:])
     return g
-def get_grad_softmax(z, grad_z):
+
+def get_grad_softmax(z, grad_z=None):
     # z and grad_out must be (N, d)
     assert(z.shape==grad_z.shape, 'z.shape not equals to grad_z.shape')
     g = grad_softmax(z)
@@ -51,6 +53,37 @@ def get_grad_softmax(z, grad_z):
             grad[i:i+1,:] = grad_z[i:i+1,:].dot(g[i])
     return grad
 
+# def grad_softmax(z, grad_z=None):
+#     def g_softmax(z):
+#         if z.shape[0] == 1:
+#             g = np.diag(z[0]) - z.transpose().dot(z)
+#         else:
+#             assert(len(z.shape)==2, 'shape of z too much')
+#             g = np.zeros((z.shape[0], z.shape[1], z.shape[1]))
+#             for i in xrange(z.shape[0]):
+#                 g[i] += g_softmax(z[i:i+1,:])
+#         return g
+#     # z and grad_out must be (N, d)
+#     assert(z.shape==grad_z.shape, 'z.shape not equals to grad_z.shape')
+#     g = g_softmax(z)
+#     grad = np.zeros(z.shape)
+#     if z.shape[0]==1:
+#         grad = grad_z.dot(g)
+#     else:
+#         assert(len(z.shape)==2, 'get_grad_softmax: shape of z too much')
+#         for i in xrange(z.shape[0]):
+#             grad[i:i+1,:] = grad_z[i:i+1,:].dot(g[i])
+#     return grad
+
+def maxhot(x):
+    assert(len(x.shape)==2, 'x shape error!')
+    max_idx = np.argmax(x, axis=1)
+    z = np.zeros(x.shape)
+    z[range(x.shape[0]),max_idx]=1.0
+    return z
+
+def grad_maxhot(z, grad_z=None):
+    return np.zeros(z.shape)
 
 
 def get_action_function(fun_name):
@@ -72,6 +105,8 @@ def get_action_function(fun_name):
         return softmax_func
     elif fun_name == 'sigmoid10':
         return sigmoid10_func
+    elif fun_name == 'maxhot':
+        return maxhot
     else:
         StandardError("error function name")
     return
@@ -95,6 +130,8 @@ def get_gradient_function(fun_name):
         return grad_softmax
     elif fun_name == 'sigmoid10':
         return grad_sigmoid10
+    elif fun_name == 'maxhot':
+        return grad_maxhot
     else:
         StandardError("error function name")
     return
@@ -132,6 +169,9 @@ class BasicLayer(object):
         self.create_variables()
 
     def create_variables(self):
+        raise StandardError('Not implemented error!')
+
+    def update(self, layer):
         raise StandardError('Not implemented error!')
 
     def get_variable_name(self, name):

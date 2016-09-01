@@ -32,10 +32,14 @@ class HMMTester(object):
         gth_state_feas = res['gth_feas']
         pred_state_feas = res['pred_feas']
         res = OrderedDict()
-        for met in metrics:
-            met_str, met_value = self.get_metric_value(met, gth_state_feas, pred_state_feas)
+        if type(metrics) == list:
+            for met in metrics:
+                met_str, met_value = self.get_metric_value(met, gth_state_feas, pred_state_feas)
+                res[met_str] = met_value
+                # print met_value
+        else:
+            met_str, met_value = self.get_metric_value(metrics, gth_state_feas, pred_state_feas)
             res[met_str] = met_value
-            # print met_value
         return res
 
     def get_metric_value(self, met, gth_state_feas, pred_state_feas):

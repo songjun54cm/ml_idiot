@@ -28,6 +28,7 @@ def check(get_cost_func, layer, input_data, gth_out):
 
     warning_thr = 1e-2
     error_thr = 1.0
+
     delta = 1e-8
 
     detail = True
@@ -89,6 +90,9 @@ def get_layer(params):
         layer_class = Attention
     elif params['Layer_name'] == 'FullConnect':
         layer_class = FullConnect
+    elif params['Layer_name'] == 'MultiFullConnect':
+        from MultiFullConnect import MultiFullConnect
+        layer_class = MultiFullConnect
     elif params['Layer_name'] == 'StackFullConnect':
         layer_class = StackFullConnect
     elif params['Layer_name'] == 'RNN':
@@ -97,6 +101,9 @@ def get_layer(params):
     elif params['Layer_name'] == 'GRU':
         from GRU import GRU
         layer_class = GRU
+    elif params['Layer_name'] == 'LSTM':
+        from LSTM import LSTM
+        layer_class = LSTM
 
     gdc_data = layer_class.gdc_data()
     layer = layer_class(gdc_data['layer_state'])
@@ -110,7 +117,7 @@ def main(params):
 
 if __name__=='__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('-L', '--Layer', dest='Layer_name', type=str, default='GRU', help='FullConnect/LSTM/Attention/StackFullConnect/RNN/GRU')
+    parser.add_argument('-L', '--Layer', dest='Layer_name', type=str, default='LSTM', help='FullConnect/MultiFullConnect/LSTM/Attention/StackFullConnect/RNN/GRU')
 
     args = parser.parse_args()
     params = vars(args)

@@ -1,6 +1,6 @@
 __author__ = 'SongJun-Dell'
 import numpy as np
-from BasicLayer import BasicLayer, micro_activate, get_action_function, get_gradient_function, softmax_func, get_grad_softmax
+from BasicLayer import BasicLayer, micro_activate, get_action_function, get_gradient_function, softmax_func, grad_softmax
 
 class Attention(BasicLayer):
     def __init__(self, state, rng=np.random.RandomState(1234)):
@@ -50,7 +50,7 @@ class Attention(BasicLayer):
         # (N, 1)
         grad_ve = input_x.dot(grad_attention_out.transpose())
         # (N, 1)
-        grad_vs = get_grad_softmax(ve.transpose(), grad_ve.transpose()).transpose()
+        grad_vs = grad_softmax(ve.transpose(), grad_ve.transpose()).transpose()
 
         grad_params[self.wa_name] += grad_vs.transpose().dot(score_vec)
         grad_unact_score_vec = (grad_vs.dot(self.wa)) * self.score_grad_act(score_vec)
