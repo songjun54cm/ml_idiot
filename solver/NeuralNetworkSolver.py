@@ -117,6 +117,7 @@ class NeuralNetworkSolver(BasicSolver):
         results = dict()
         # results.update(res)
         results.update(metrics)
+        results['loss'] = res['loss']*self.state['loss_scale']
         return results
 
     def test(self, model, data_provider):

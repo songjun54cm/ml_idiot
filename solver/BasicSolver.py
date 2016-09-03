@@ -116,3 +116,6 @@ class BasicSolver(object):
             return len(batch_data)
         else:
             raise StandardError('get batch size error!')
+
+    def reform_dp(self, data_provider):
+        pass
