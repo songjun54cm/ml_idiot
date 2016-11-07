@@ -76,5 +76,5 @@ class BasicDataProvider(object):
             start_pos = end_pos
             yield self.form_data(iter_datas)
 
-    def form_data(self, batch_data):
+    def form_data(self, batch_data, options=None):
         return batch_data
