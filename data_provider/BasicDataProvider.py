@@ -40,6 +40,11 @@ class BasicDataProvider(object):
             split_data_list.append([samples_list[di] for di in idxes])
         return split_data_list
 
+    def get_n_fold_splits(self, sample_list, n):
+        rate_list = [ 1.0/n for i in xrange(n) ]
+        fold_splits = self.get_split_data(sample_list, rate_list)
+        return fold_splits
+
     def save(self, file_path):
         print 'trying to save provider into %s' % file_path
         with open(file_path, 'wb') as f:

@@ -1,5 +1,7 @@
 __author__ = 'SongJun-Dell'
 import time, os
+
+
 def counting_time(func):
     def _deco(*args, **kwargs):
         t0 = time.time()
@@ -9,6 +11,7 @@ def counting_time(func):
         return ret
     return _deco
 
+
 def isWindows():
     import platform
     sysstr = platform.system()
@@ -17,9 +20,11 @@ def isWindows():
     else:
         return False
 
+
 def sort_dict(dict_count):
     dic = sorted(dict_count.iteritems(), key=lambda d:d[1], reverse=True)
     return dic
+
 
 def insert_list_to_voca(in_list, voca=None):
     if voca is None:
@@ -36,6 +41,7 @@ def insert_list_to_voca(in_list, voca=None):
         voca['next_ix'] += 1
     return voca
 
+
 def get_voca_from_count(key_count, insert_list=[], unknow=True):
     if unknow:
         in_list = ['UNKNOW'] + insert_list
@@ -48,6 +54,7 @@ def get_voca_from_count(key_count, insert_list=[], unknow=True):
         voca['w_count'].append(v)
         voca['next_ix'] += 1
     return voca
+
 
 def get_data_splits(num_splits, datas_list):
     data_splits = list()
@@ -63,6 +70,7 @@ def get_data_splits(num_splits, datas_list):
     for i in xrange(len(idxs)-1):
         data_splits.append(datas_list[idxs[i]:idxs[i+1]])
     return data_splits
+
 
 def set_nn_state(state):
     # set output folder
@@ -82,6 +90,7 @@ def set_nn_state(state):
         os.makedirs(state['checkpoint_out_dir'])
     return state
 
+
 def setup_ml_state(state):
     if not state.has_key('out_folder'):
         num = 1
@@ -98,3 +107,12 @@ def setup_ml_state(state):
         state['checkpoint_out_dir'] = os.path.join(out_folder, 'check_point')
         os.makedirs(state['checkpoint_out_dir'])
     return state
+
+
+def strdecode(sentence):
+    if not isinstance(sentence, unicode):
+        try:
+            sentence = sentence.decode('utf-8')
+        except UnicodeDecodeError:
+            sentence = sentence.decode('gbk', 'ignore')
+    return sentence
