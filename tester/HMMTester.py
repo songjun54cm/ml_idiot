@@ -45,19 +45,15 @@ class HMMTester(object):
     def get_metric_value(self, met, gth_state_feas, pred_state_feas):
         if met == 'f1':
             return 'F1', self.evaluator.f1_score(gth_state_feas, pred_state_feas)
-        elif met == 'tt':
-            return 'True-True', self.evaluator.true_true_rate(gth_state_feas, pred_state_feas)
-        elif met == 'tf':
-            return 'True-False', self.evaluator.true_false_rate(gth_state_feas, pred_state_feas)
+        elif met == 'tp':
+            return 'True-Positive', self.evaluator.true_positive_rate(gth_state_feas, pred_state_feas)
+        elif met == 'tn':
+            return 'True-Negative', self.evaluator.true_negative_rate(gth_state_feas, pred_state_feas)
+        elif met == 'fp':
+            return 'False-Positive', self.evaluator.false_positive_rate(gth_state_feas, pred_state_feas)
         elif met == 'ft':
-            return 'False-True', self.evaluator.false_true_rate(gth_state_feas, pred_state_feas)
+            return 'False-Negative', self.evaluator.false_negative_rate(gth_state_feas, pred_state_feas)
         elif met == 'accuracy':
             return 'Accuracy', self.evaluator.accuracy(gth_state_feas, pred_state_feas)
         else:
             raise StandardError('metric name error!')
-
-
-
-
-
-
