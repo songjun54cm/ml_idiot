@@ -51,9 +51,10 @@ class HMMTester(object):
             return 'True-Negative', self.evaluator.true_negative_rate(gth_state_feas, pred_state_feas)
         elif met == 'fp':
             return 'False-Positive', self.evaluator.false_positive_rate(gth_state_feas, pred_state_feas)
-        elif met == 'ft':
+        elif met == 'fn':
             return 'False-Negative', self.evaluator.false_negative_rate(gth_state_feas, pred_state_feas)
         elif met == 'accuracy':
             return 'Accuracy', self.evaluator.accuracy(gth_state_feas, pred_state_feas)
         else:
+            print 'metric: %s' % met
             raise StandardError('metric name error!')
