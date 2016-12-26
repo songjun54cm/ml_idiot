@@ -17,25 +17,37 @@ class MultiLabelEvaluator(BasicEvaluator):
 
     def f1_score(self, gth, pred):
         p = self.accuracy(gth, pred)
-        r = self.true_true_rate(gth, pred)
-        f1 = 2*p*r/(p+r)
+        r = self.true_positive_rate(gth, pred)
+        p_plus_r = p + r
+        if p_plus_r == 0:
+            return 0.0
+        else:
+            f1 = 2*p*r/(p+r)
         return f1
 
-    def true_true_rate(self, gth, pred):
+    def true_positive_rate(self, gth, pred):
         logical_gth, logical_pred = self.form_logical_value(gth, pred)
         gth_true_num = np.where(logical_gth)[0].shape[0]
         tt_num = np.where(np.logical_and(logical_gth, logical_pred))[0].shape[0]
         ttrate = float(tt_num) / float(gth_true_num)
         return ttrate
 
-    def true_false_rate(self, gth, pred):
+    def true_negative_rate(self, gth, pred):
+        logical_gth, logical_pred = self.form_logical_value(gth, pred)
+        not_logical_gth = np.logical_not(logical_gth)
+        gth_false_num = np.where(not_logical_gth)[0].shape[0]
+        tn_num = np.where(np.logical_and(not_logical_gth, ~logical_pred))[0].shape[0]
+        tn_rate = float(tn_num) / float(gth_false_num)
+        return tn_rate
+
+    def false_positive_rate(self, gth, pred):
         logical_gth, logical_pred = self.form_logical_value(gth, pred)
         gth_true_num = np.where(logical_gth)[0].shape[0]
         tf_num = np.where(np.logical_and(logical_gth, ~logical_pred))[0].shape[0]
         tf_rate = float(tf_num) / float(gth_true_num)
         return tf_rate
 
-    def false_true_rate(self, gth, pred):
+    def false_negative_rate(self, gth, pred):
         logical_gth, logical_pred = self.form_logical_value(gth, pred)
         not_logical_gth = np.logical_not(logical_gth)
         gth_false_num = np.where(not_logical_gth)[0].shape[0]
@@ -46,7 +58,10 @@ class MultiLabelEvaluator(BasicEvaluator):
     def accuracy(self, gth, pred):
         logical_gth, logical_pred = self.form_logical_value(gth, pred)
         pred_true_num = np.where(logical_pred)[0].shape[0]
-        tt_num = np.where(np.logical_and(logical_gth, logical_pred))[0].shape[0]
-        accuracy = float(tt_num) / float(pred_true_num)
+        if pred_true_num == 0:
+            return 0.0
+        else:
+            tt_num = np.where(np.logical_and(logical_gth, logical_pred))[0].shape[0]
+            accuracy = float(tt_num) / float(pred_true_num)
         return accuracy
 

@@ -109,9 +109,9 @@ class NeuralNetworkSolver(BasicSolver):
         metrics = self.tester.get_metrics(res, self.metrics)
         message = ''
         for key,value in metrics.iteritems():
-            message += '%s: %f ' % (key, value)
+            message += '%10s: %.5f ' % (key, value)
         time_eclipse = time.time() - t0
-        message = 'evaluate %d %s samples in %.3fs. ' % (valid_num, split, time_eclipse) + message
+        message = 'evaluate %10d %10s samples in %.3fs. ' % (valid_num, split, time_eclipse) + message
         self.log_message(message)
 
         results = dict()
