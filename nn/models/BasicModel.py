@@ -156,7 +156,7 @@ class BasicModel(object):
 
     def get_loss(self, batch_data, pool=None, num_process=0, mode='test'):
         loss, grad_params = self.train_one_batch(batch_data, pool, num_process, mode)
-        if mode == 'train':
+        if mode in ['train', 'gc']:
             return loss, grad_params
         elif mode == 'test':
             return loss

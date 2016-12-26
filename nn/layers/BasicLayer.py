@@ -28,19 +28,18 @@ def softmax_func(x, axis=1):
     p = e / np.sum(e, axis=axis, keepdims=True)
     return p
 
-def grad_softmax(z):
-    # return z*(1-z)
-    # z must be (N, d)
-    if z.shape[0] == 1:
-        g = np.diag(z[0]) - z.transpose().dot(z)
-    else:
-        assert(len(z.shape)==2, 'shape of z too much')
-        g = np.zeros((z.shape[0], z.shape[1], z.shape[1]))
-        for i in xrange(z.shape[0]):
-            g[i] += grad_softmax(z[i:i+1,:])
-    return g
-
 def get_grad_softmax(z, grad_z=None):
+    def grad_softmax(z):
+        # return z*(1-z)
+        # z must be (N, d)
+        if z.shape[0] == 1:
+            g = np.diag(z[0]) - z.transpose().dot(z)
+        else:
+            assert(len(z.shape)==2, 'shape of z too much')
+            g = np.zeros((z.shape[0], z.shape[1], z.shape[1]))
+            for i in xrange(z.shape[0]):
+                g[i] += grad_softmax(z[i:i+1,:])
+        return g
     # z and grad_out must be (N, d)
     assert(z.shape==grad_z.shape, 'z.shape not equals to grad_z.shape')
     g = grad_softmax(z)

@@ -11,7 +11,7 @@ class CheckerGraident(object):
         self.status_params = [[], [], [], [], []]
 
     def check_gradient(self):
-        cost, grads_weights = self.get_loss(mode='train')
+        cost, grads_weights = self.get_loss(mode='gc')
         gc_params = self.get_gc_params()
 
         for p in gc_params.keys():

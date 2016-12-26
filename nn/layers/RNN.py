@@ -8,7 +8,7 @@ class RNN(BasicLayer):
         state = {
             'rnn_input_size': ,
             'hidden_size': ,
-            'h_act': ,
+            'hidden_act': ,
         }
         """
         super(RNN, self).__init__(state, rng)
@@ -18,8 +18,8 @@ class RNN(BasicLayer):
         self.Wh, self.Wh_name = self.add_params((self.state['rnn_input_size'], self.state['hidden_size']), 'Wh')
         self.regularize_param_names.append(self.Wh_name)
         self.bh, self.bh_name = self.add_params((1, self.state['hidden_size']), 'bh')
-        self.h_act = get_action_function(self.state.get('h_act', 'tanh'))
-        self.h_grad_act = get_gradient_function(self.state.get('h_act', 'tanh'))
+        self.h_act = get_action_function(self.state.get('hidden_act', 'tanh'))
+        self.h_grad_act = get_gradient_function(self.state.get('hidden_act', 'tanh'))
 
         """
         # rnn output gate
@@ -90,7 +90,7 @@ class RNN(BasicLayer):
             'x_size': x_size,
             'rnn_input_size': input_size,
             'hidden_size': hidden_size,
-            'h_act': 'tanh'
+            'hidden_act': 'tanh'
         }
         input_x = np.random.RandomState(1).rand(x_num, x_size)
         gth_out = np.random.RandomState(2).rand(x_num, hidden_size)
