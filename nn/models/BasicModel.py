@@ -143,13 +143,20 @@ class BasicModel(object):
             for p in xrange(num_processes):
                 split_res = pool_results[p].get()
                 train_loss += split_res['loss']
-                if mode=='train':
+                if mode in ['train', 'gc']:
                     grad_params = self.merge_grads(grad_params, split_res['grad_params'], scale=float(num_processes))
-
+                elif mode in ['test']:
+                    pass
+                else:
+                    raise StandardError('mode error.')
             train_loss /= num_processes
 
-        if mode=='train':
+        if mode in ['train', 'gc']:
             self.grad_regularization(grad_params)
+        elif mode in ['test']:
+            pass
+        else:
+            raise StandardError('mode error.')
         # print 'train_cost %f' % train_cost
         train_loss = train_loss + self.state['regularize_rate'] * self.get_regularization()
         return train_loss, grad_params
@@ -158,7 +165,7 @@ class BasicModel(object):
         loss, grad_params = self.train_one_batch(batch_data, pool, num_process, mode)
         if mode in ['train', 'gc']:
             return loss, grad_params
-        elif mode == 'test':
+        elif mode in ['test']:
             return loss
         else:
             raise StandardError('mode error')

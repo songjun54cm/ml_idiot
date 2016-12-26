@@ -7,7 +7,7 @@ class CheckerModelGradient(CheckerGraident):
         self.model = model
         self.gc_data = gc_data
 
-    def get_loss(self, mode='train'):
+    def get_loss(self, mode='gc'):
         return self.model.get_loss(self.gc_data, mode=mode)
 
     def get_gc_params(self):

@@ -21,12 +21,20 @@ class MultiLabelSeq(BasicModel):
             pred_feas, forward_sample_cache = self.forward_sample(data, mode)
             sample_loss = self.loss_one_sample(data['target_feas'], pred_feas)
             batch_losses.append(sample_loss)
-            if mode == 'train':
+            if mode in ['train', 'gc']:
                 self.backward_sample(grad_params, forward_sample_cache)
+            elif mode in ['test']:
+                pass
+            else:
+                raise StandardError('mode error.')
         batch_loss = np.mean(batch_losses)
-        if mode == 'train':
+        if mode in ['train', 'gc']:
             for p in grad_params.keys():
                 grad_params[p] /= len(batch_data)
+        elif mode == 'test':
+            pass
+        else:
+            raise StandardError('mode error')
         return batch_loss, grad_params
 
     def predict_batch(self, batch_data, mode):
@@ -36,7 +44,7 @@ class MultiLabelSeq(BasicModel):
                 pred_sample = self.predict_sample(data, mode)
                 preds.append(pred_sample)
             return preds
-        elif mode == 'train':
+        elif mode in ['train', 'gc']:
             caches = list()
             for data in batch_data:
                 pred_sample, cache = self.predict_sample(data, mode)
@@ -52,8 +60,10 @@ class MultiLabelSeq(BasicModel):
         pred_fea[pred_fea<0.5] = 0.0
         if mode == 'test':
             return pred_fea
-        else:
+        elif mode in ['train', 'gc']:
             return pred_fea, cache
+        else:
+            raise StandardError('mode error.')
 
     # need to be implemented
     def forward_sample(self, sample_data, mode):
