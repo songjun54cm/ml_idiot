@@ -40,18 +40,18 @@ class MultiLabelTester(BasicTester):
         return res
 
     def get_metric_value(self, met, gth_state_feas, pred_state_feas):
-        if met == 'f1':
-            return 'F1', self.evaluator.f1_score(gth_state_feas, pred_state_feas)
-        elif met == 'tp':
-            return 'True-Positive', self.evaluator.true_positive_rate(gth_state_feas, pred_state_feas)
-        elif met == 'tn':
+        if met in ['f1', 'F1']:
+            return met, self.evaluator.f1_score(gth_state_feas, pred_state_feas)
+        elif met in ['tp', 'TruePositive']:
+            return met, self.evaluator.true_positive_rate(gth_state_feas, pred_state_feas)
+        elif met in ['tn', 'TrueNegative']:
             return 'True-Negative', self.evaluator.true_negative_rate(gth_state_feas, pred_state_feas)
-        elif met == 'fp':
+        elif met in ['fp', 'FalsePositive']:
             return 'False-Positive', self.evaluator.false_positive_rate(gth_state_feas, pred_state_feas)
-        elif met == 'fn':
-            return 'False-Negative', self.evaluator.false_negative_rate(gth_state_feas, pred_state_feas)
-        elif met == 'accuracy':
-            return 'Accuracy', self.evaluator.accuracy(gth_state_feas, pred_state_feas)
+        elif met in ['fn', 'FalseNegative']:
+            return met, self.evaluator.false_negative_rate(gth_state_feas, pred_state_feas)
+        elif met in ['acc', 'Accuracy']:
+            return met, self.evaluator.accuracy(gth_state_feas, pred_state_feas)
         else:
             print 'metric: %s' % met
             raise StandardError('metric name error!')

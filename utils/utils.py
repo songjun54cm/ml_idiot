@@ -103,7 +103,8 @@ def setup_ml_state(state):
         os.makedirs(out_folder)
         state['out_folder'] = out_folder
         state['train_log_file'] = os.path.join(out_folder, 'train_log.log')
-        state['valid_log_file'] = os.path.join(out_folder, 'valid_log.log')
+        state['train_log_csv_file'] = os.path.join(out_folder, 'train_log_csv.csv')
+        state['valid_log_csv_file'] = os.path.join(out_folder, 'valid_log_csv.csv')
         state['checkpoint_out_dir'] = os.path.join(out_folder, 'check_point')
         os.makedirs(state['checkpoint_out_dir'])
     return state

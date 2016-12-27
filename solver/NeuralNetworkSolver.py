@@ -39,7 +39,7 @@ class NeuralNetworkSolver(BasicSolver):
 
     def train(self, model, data_provider):
         self.create_checkpoint_dir()
-        self.log_train_message(json.dumps(self.state, indent=2))
+        self.log_train_message(json.dumps(self.state, indent=2), file_name='model_state.txt')
         self.setup_train_state(data_provider)
 
         for epoch_i in xrange(self.max_epoch):
@@ -52,16 +52,23 @@ class NeuralNetworkSolver(BasicSolver):
                 if self.to_validate(epoch_i):
                     self.valid_sample_count = 0
                     self.valid_count += 1
+                    valid_csv_message = 'epoch_num,%d\n' % epoch_i
+                    valid_csv_message += self.form_valid_csv(mode='head') + '\n'
                     # validate on the train valid data set
                     res = self.validate_on_split(model, data_provider, split='train_valid')
-
+                    valid_csv_message += self.form_valid_csv(mode='body', res=res) + '\n'
                     # validate on the validate data set
                     valid_res = self.validate_on_split(model, data_provider, split='valid')
-
+                    valid_csv_message += self.form_valid_csv(mode='body', res=valid_res) + '\n'
                     # validate on the test data set
                     res = self.validate_on_split(model, data_provider, split='test')
+                    valid_csv_message += self.form_valid_csv(mode='body', res=res) + '\n'
 
-                    self.save_or_not(valid_res, model)
+                    self.log_valid_csv_message(valid_csv_message)
+                    self.log_valid_csv_message('\n')
+
+                    self.save_or_not(valid_res, model, valid_csv_message)
+        self.log_valid_csv_message(self.top_performance_csv_message, 'top_performance_log.csv')
         return self.last_save_model_file_path
 
     def update_smooth_train_loss(self, new_loss):
@@ -94,6 +101,9 @@ class NeuralNetworkSolver(BasicSolver):
         message = 'samples %d/%d done in %.3fs. epoch %.3f/%d. loss_cost= %f, (smooth %f)' \
             % (self.sample_count, self.train_size, time_eclipse, epoch_rate, self.max_epoch, loss, self.smooth_train_cost)
         self.log_train_message(message)
+        csv_message = 'epoch,%.3f,/,%d,samples,%d,/,%d,done_in,%.3f,seconds,loss_cost,%f,smooth,%f' \
+            % (epoch_rate, self.max_epoch, self.sample_count, self.train_size, time_eclipse, loss, self.smooth_train_cost)
+        self.log_train_csv(csv_message)
         # detect loss exploding
         if not self.detect_loss_explosion(loss):
             sys.exit()
@@ -108,17 +118,31 @@ class NeuralNetworkSolver(BasicSolver):
         valid_num = res['sample_num']
         metrics = self.tester.get_metrics(res, self.metrics)
         message = ''
-        for key,value in metrics.iteritems():
-            message += '%10s: %.5f ' % (key, value)
+        for key in self.metrics:
+            message += '%10s: %.5f ' % (key, metrics[key])
         time_eclipse = time.time() - t0
         message = 'evaluate %10d %10s samples in %.3fs. ' % (valid_num, split, time_eclipse) + message
-        self.log_message(message)
-
+        self.log_train_message(message)
         results = dict()
         # results.update(res)
-        results.update(metrics)
+        results['metrics'] = metrics
+        results['sample_num'] = res['sample_num']
+        results['seconds'] = time_eclipse
+        results['split'] = split
         results['loss'] = res['loss']*self.state['loss_scale']
         return results
+
+    def form_valid_csv(self, mode, res=None):
+        if mode == 'head':
+            head_message = 'sample_num,seconds,split,Loss,'+','.join(self.metrics)
+            return head_message
+        elif mode == 'body':
+            body_message = '%d,%.3f,%s,%f' % (res['sample_num'], res['seconds'], res['split'], res['loss'])
+            for met in self.metrics:
+                body_message += ',%f' % res['metrics'][met]
+            return body_message
+        else:
+            raise StandardError('form_valid_csv mode error.')
 
     def test(self, model, data_provider):
         self.validate_on_split(model, data_provider, 'train_valid')
