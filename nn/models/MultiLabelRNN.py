@@ -1,16 +1,22 @@
 __author__ = 'SongJun-Dell'
-from ml_idiot.nn.models.SeqModel import SeqModel
+from ml_idiot.nn.models.MultiLabelSeq import MultiLabelSeq
 from ml_idiot.nn.layers.FullConnect import FullConnect
 from ml_idiot.nn.layers.RNN import RNN
 from ml_idiot.utils.loss_functions import distance_loss, grad_distance_loss
 
-class EncoderRNNDecoder(SeqModel):
+class MultiLabelRNN(MultiLabelSeq):
     def __init__(self, state):
-        super(EncoderRNNDecoder, self).__init__(state)
+        super(MultiLabelRNN, self).__init__(state)
+        self.loss_func = distance_loss
+        self.grad_loss_func = grad_distance_loss
+        self.init_model(state)
+
+    def init_model(self, state):
         self.encode_layer = self.add_layer(FullConnect(state['encode_layer_state']))
         self.rnn_layer = self.add_layer(RNN(state['rnn_layer_state']))
         self.decode_layer = self.add_layer(FullConnect(state['decode_layer_state']))
         self.check()
+
 
     @staticmethod
     def fullfillstate(state):
@@ -37,27 +43,8 @@ class EncoderRNNDecoder(SeqModel):
         state['rnn_layer_state'] = rnn_layer_state
         state['decode_layer_state'] = decode_layer_state
         return state
-###
 
-    def loss_one_sample(self, target_feas, pred_feas):
-        loss = distance_loss(pred_feas, target_feas)
-        return loss
-
-    def backward_sample(self, grad_params, forward_sample_cache):
-        target_feas = forward_sample_cache['target_feas']
-        decode_out = forward_sample_cache['decode_out']
-        decode_cache = forward_sample_cache['decode_cache']
-        rnn_out = forward_sample_cache['rnn_out']
-        rnn_caches = forward_sample_cache['rnn_caches']
-        encode_in = forward_sample_cache['encode_in']
-        encode_cache = forward_sample_cache['encode_cache']
-
-        grad_decode_out = grad_distance_loss(decode_out, target_feas)
-        grad_rnn_out = self.decode_layer.backward(grad_params, grad_decode_out, decode_cache)
-        grad_encode_out = self.rnn_layer.backward_whole_sequence(grad_params, grad_rnn_out, rnn_caches)
-        grad_in_vecs = self.encode_layer.backward(grad_params, grad_encode_out, encode_cache)
-
-    def forward_sample(self, sample_data):
+    def forward_sample(self, sample_data, mode):
         recurrent_feas = sample_data['recurrent_feas']
         # target_feas = sample_data['target_feas']
         encode_out, encode_cache = self.encode_layer.forward(recurrent_feas)
@@ -75,8 +62,16 @@ class EncoderRNNDecoder(SeqModel):
         }
         return decode_out, forward_cache
 
-    def predict_sample(self, sample_data):
-        pred_fea, cache = self.forward_sample(sample_data)
-        pred_fea[pred_fea>=0.5] = 1.0
-        pred_fea[pred_fea<0.5] = 0.0
-        return pred_fea
+    def backward_sample(self, grad_params, forward_sample_cache):
+        target_feas = forward_sample_cache['target_feas']
+        decode_out = forward_sample_cache['decode_out']
+        decode_cache = forward_sample_cache['decode_cache']
+        rnn_out = forward_sample_cache['rnn_out']
+        rnn_caches = forward_sample_cache['rnn_caches']
+        encode_in = forward_sample_cache['encode_in']
+        encode_cache = forward_sample_cache['encode_cache']
+
+        grad_decode_out = grad_distance_loss(decode_out, target_feas)
+        grad_rnn_out = self.decode_layer.backward(grad_params, grad_decode_out, decode_cache)
+        grad_encode_out = self.rnn_layer.backward_whole_sequence(grad_params, grad_rnn_out, rnn_caches)
+        grad_in_vecs = self.encode_layer.backward(grad_params, grad_encode_out, encode_cache)

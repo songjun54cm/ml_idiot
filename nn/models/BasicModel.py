@@ -73,6 +73,10 @@ class BasicModel(object):
         self.regularize_param_names += layer.regularize_param_names
         return layer
 
+    def reinit(self):
+        for layer in self.layers:
+            layer.reinit()
+
     def get_regularization(self):
         reg_value = 0
         for p in self.regularize_param_names:

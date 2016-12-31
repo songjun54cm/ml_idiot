@@ -22,26 +22,27 @@ class StackFullConnect(BasicLayer):
 
     def forward(self, input_x):
         inner_hidden_outs = list()
+        inner_caches = list()
         inner_input_x = input_x
         for inner_layer in self.layer_sequence:
-            inner_out = inner_layer.forward(inner_input_x)
+            inner_out, inner_cache = inner_layer.forward(inner_input_x)
+            inner_caches.append(inner_cache)
             inner_hidden_outs.append(inner_out)
             inner_input_x = inner_out
         out_vec = inner_out
         cache = {
-            'inner_hidden_outs': inner_hidden_outs[:-1]
+            'input_x': input_x,
+            'inner_caches': inner_caches,
+            'out_vec': out_vec,
         }
         return out_vec, cache
 
-    def backward(self, grad_params, in_vecs, grad_out, cache):
+    def backward(self, grad_params, grad_out, cache):
         grad_inner_out = grad_out
         for li in reversed(xrange(self.num_inner_layers)):
-            if li == 0:
-                layer_in = in_vecs
-            else:
-                layer_in = cache['inner_hidden_outs'][li-1]
+            inner_cache = cache['inner_caches'][li]
             inner_layer = self.layer_sequence[li]
-            grad_inner_out = inner_layer.backward(grad_params, layer_in, grad_inner_out)
+            grad_inner_out = inner_layer.backward(grad_params, grad_inner_out, inner_cache)
         return grad_inner_out
 
     @staticmethod
@@ -81,7 +82,7 @@ class StackFullConnect(BasicLayer):
         grad_params = dict()
         for p in self.params.keys():
             grad_params[p] = np.zeros(self.params[p].shape)
-        input_x = gdc_cache['input_x']
         forward_cache = gdc_cache['forward_cache']
-        self.backward(grad_params, input_x, grad_out, forward_cache)
+        grad_in_vecs = self.backward(grad_params, grad_out, forward_cache)
+        grad_params['input_x'] = grad_in_vecs
         return grad_params

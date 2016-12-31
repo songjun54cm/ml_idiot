@@ -4,12 +4,12 @@ import numpy as np
 import cPickle as pickle
 from ml_idiot.tester.BasicTester import BasicTester
 
-
 def add_new_line(message):
     if message[-1] != '\n': message += '\n'
     return message
 
 def log_to_file(message, file_name, folder_path):
+    message = add_new_line(message)
     file_path = os.path.join(folder_path, file_name)
     with open(file_path, 'ab') as f:
         f.write(message)
@@ -23,22 +23,43 @@ class BasicSolver(object):
         self.valid_log_file = None
         self.grad_cache = dict()
         self.metrics = []
-        if state['mode'] == 'train':
-            num = 1
-            while os.path.exists(state['train_log_file']):
-                state['train_log_file'] = state['train_log_file'] + '_' + str(num)
-                num += 1
-            while os.path.exists(state['valid_log_file']):
-                state['valid_log_csv_file'] = state['valid_log_csv_file'] + '_' + str(num)
-                num += 1
-            while os.path.exists(state['train_log_csv_file']):
-                state['train_log_csv_file'] = state['train_log_csv_file'] + '_' + str(num)
-                num += 1
-            self.train_log_file = open(state['train_log_file'], 'ab')
-            self.train_log_csv_file = open(state['train_log_csv_file'], 'ab')
-            self.valid_log_csv_file = open(state['valid_log_csv_file'], 'ab')
+
         self.last_save_model_file_path = None
         self.top_performance_csv_message = None
+
+    def create_out_folder(self):
+        if not self.state.has_key('out_folder'):
+            num = 1
+            out_prefix = os.path.join(self.state['proj_folder'], 'output',
+                                      self.state['model_name'], self.state['data_set_name'], 'out')
+            self.state['out_prefix'] = out_prefix
+            out_folder = os.path.join(out_prefix, str(num))
+            while os.path.exists(out_folder):
+                num += 1
+                out_folder = os.path.join(out_prefix, str(num))
+            self.state['out_folder'] = out_folder
+        if not os.path.exists(self.state['out_folder']):
+            print 'create out folder %s.' % self.state['out_folder']
+            os.makedirs(self.state['out_folder'])
+
+    def create_log_files(self):
+        self.state['train_log_file'] = os.path.join(self.state['out_folder'], 'train_log.log')
+        self.state['train_log_csv_file'] = os.path.join(self.state['out_folder'], 'train_log_csv.csv')
+        self.state['valid_log_csv_file'] = os.path.join(self.state['out_folder'], 'valid_log_csv.csv')
+        if self.state['mode'] == 'train':
+            num = 1
+            while os.path.exists(self.state['train_log_file']):
+                self.state['train_log_file'] = self.state['train_log_file'] + '_' + str(num)
+                num += 1
+            while os.path.exists(self.state['valid_log_csv_file']):
+                self.state['valid_log_csv_file'] = self.state['valid_log_csv_file'] + '_' + str(num)
+                num += 1
+            while os.path.exists(self.state['train_log_csv_file']):
+                self.state['train_log_csv_file'] = self.state['train_log_csv_file'] + '_' + str(num)
+                num += 1
+            self.train_log_file = open(self.state['train_log_file'], 'ab')
+            self.train_log_csv_file = open(self.state['train_log_csv_file'], 'ab')
+            self.valid_log_csv_file = open(self.state['valid_log_csv_file'], 'ab')
 
     def log_train_message(self, message, file_name=None):
         print message
@@ -125,12 +146,13 @@ class BasicSolver(object):
             raise StandardError('sgd mode error!')
 
     def create_checkpoint_dir(self):
+        self.state['checkpoint_out_dir'] = os.path.join(self.state['out_folder'], 'check_point')
         if not os.path.exists(self.state['checkpoint_out_dir']):
             message = 'creating folder %s' % self.state['checkpoint_out_dir']
             self.log_train_message(message)
             os.makedirs(self.state['checkpoint_out_dir'])
 
-    def save_or_not(self, res, model, valid_csv_message=None):
+    def save_or_not(self, res, model, valid_csv_message=None, validate_res=None):
         save_tag, cp_suffix = self.tester.detect_to_save(res, model)
         modelcp_prefix = 'model_checkpoint_%s_%s' % (self.state['model_name'], self.state['data_set_name'])
         model_file_name = '%s_%s' % (modelcp_prefix, cp_suffix)
@@ -141,10 +163,12 @@ class BasicSolver(object):
             message = 'save checkpoint models in %s.' % model_file_path
             self.log_train_message(message)
             self.log_valid_csv_message(message)
-            self.log_valid_message('\n')
+            self.log_valid_csv_message('\n')
             self.last_save_model_file_path = model_file_path
             if valid_csv_message is not None:
                 self.top_performance_csv_message = valid_csv_message
+            if validate_res is not None:
+                self.top_performance_valid_res = validate_res
 
     def get_batch_size(self, batch_data):
         if type(batch_data)==list:

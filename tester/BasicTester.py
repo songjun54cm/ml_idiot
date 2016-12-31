@@ -5,13 +5,13 @@ class BasicTester(object):
     def __init__(self):
         self.evaluator = BasicEvaluator()
 
-    def test_on_split(self, model, data_provider, split, metrics):
+    def test_on_split(self, model, data_provider, split):
         split_data = data_provider.splits[split]
-        res = self.test_batch(model, split_data, metrics)
+        res = self.test_batch(model, split_data)
         return res
 
     # need to be implemented
-    def test_batch(self, model, data_batch, metrics):
+    def test_batch(self, model, data_batch):
         raise NotImplementedError('test batch not implemented.')
 
 

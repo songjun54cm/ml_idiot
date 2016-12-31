@@ -14,6 +14,7 @@ def get_prob(freq_list):
 class BasicDataProvider(object):
     def __init__(self):
         self.splits = dict()
+        self.fold_splits = list()
 
     def get_split(self, split):
         return self.splits[split]
@@ -45,6 +46,14 @@ class BasicDataProvider(object):
         fold_splits = self.get_split_data(sample_list, rate_list)
         return fold_splits
 
+    def form_splits(self, train_folds, train_valid_fold, valid_fold, test_fold):
+        self.splits['train'] = []
+        for fold_id in train_folds:
+            self.splits['train'] += self.fold_splits[fold_id]
+        self.splits['train_valid'] = self.fold_splits[train_valid_fold]
+        self.splits['valid']= self.fold_splits[valid_fold]
+        self.splits['test'] = self.fold_splits[test_fold]
+
     def save(self, file_path):
         print 'trying to save provider into %s' % file_path
         with open(file_path, 'wb') as f:
@@ -68,6 +77,10 @@ class BasicDataProvider(object):
     #
     #     if len(batch) > 0:
     #         yield batch
+
+    def iter_training_batch(self, batch_size, rng=random.Random(1234)):
+        for iter_data in self.iter_split_batches(batch_size, 'train', rng=rng):
+            yield iter_data
 
     def iter_split_batches(self, batch_size, split, rng=random.Random(1234)):
         split_size = len(self.splits[split])

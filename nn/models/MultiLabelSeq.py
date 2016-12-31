@@ -1,10 +1,13 @@
 __author__ = 'SongJun-Dell'
 import numpy as np
-from ml_idiot.nn.models.BasicModel import BasicModel
+from ml_idiot.nn.models.SeqModel import SeqModel
+from ml_idiot.utils.loss_functions import distance_loss, grad_distance_loss
 
-class MultiLabelSeq(BasicModel):
+class MultiLabelSeq(SeqModel):
     def __init__(self, state):
         super(MultiLabelSeq, self).__init__(state)
+        self.loss_func = distance_loss
+        self.grad_loss_func = grad_distance_loss
 
     def loss_one_sample(self, target_feas, pred_feas):
         loss = self.loss_func(pred_feas, target_feas)
@@ -12,47 +15,6 @@ class MultiLabelSeq(BasicModel):
 
     def grad_loss_one_sample(self, pred_vecs, target_vecs):
         return self.grad_loss_func(pred_vecs, target_vecs)
-
-    def get_batch_loss(self, batch_data, mode='train'):
-        batch_losses = list()
-        # gc--gradient check...
-        grad_params = self.init_grads() if mode in ['train','gc'] else None
-        for data in batch_data:
-            pred_feas, forward_sample_cache = self.forward_sample(data, mode)
-            sample_loss = self.loss_one_sample(data['target_feas'], pred_feas)
-            batch_losses.append(sample_loss)
-            if mode in ['train', 'gc']:
-                self.backward_sample(grad_params, forward_sample_cache)
-            elif mode in ['test']:
-                pass
-            else:
-                raise StandardError('mode error.')
-        batch_loss = np.mean(batch_losses)
-        if mode in ['train', 'gc']:
-            for p in grad_params.keys():
-                grad_params[p] /= len(batch_data)
-        elif mode == 'test':
-            pass
-        else:
-            raise StandardError('mode error')
-        return batch_loss, grad_params
-
-    def predict_batch(self, batch_data, mode):
-        preds = list()
-        if mode == 'test':
-            for data in batch_data:
-                pred_sample = self.predict_sample(data, mode)
-                preds.append(pred_sample)
-            return preds
-        elif mode in ['train', 'gc']:
-            caches = list()
-            for data in batch_data:
-                pred_sample, cache = self.predict_sample(data, mode)
-                preds.append(pred_sample)
-                caches.append(cache)
-            return preds, caches
-        else:
-            raise StandardError('mode error.')
 
     def predict_sample(self, sample_data, mode):
         pred_fea, cache = self.forward_sample(sample_data, mode)

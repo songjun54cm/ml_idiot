@@ -90,7 +90,7 @@ def set_nn_state(state):
         os.makedirs(state['checkpoint_out_dir'])
     return state
 
-
+"""
 def setup_ml_state(state):
     if not state.has_key('out_folder'):
         num = 1
@@ -108,7 +108,7 @@ def setup_ml_state(state):
         state['checkpoint_out_dir'] = os.path.join(out_folder, 'check_point')
         os.makedirs(state['checkpoint_out_dir'])
     return state
-
+"""
 
 def strdecode(sentence):
     if not isinstance(sentence, unicode):

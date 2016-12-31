@@ -14,12 +14,14 @@ class CheckerLayerGradient(CheckerGraident):
     def get_loss(self, mode='train'):
         layer_out, layer_cache =self.layer.gdc_activate(self.input_data)
         loss = 0.5 * np.sum((layer_out - self.gth_out)**2)
-        if mode=='train':
+        if mode in ['train', 'gc']:
             grad_out = layer_out - self.gth_out
             grad_params = self.layer.gdc_backward(grad_out, layer_cache)
             return loss, grad_params
         elif mode=='test':
             return loss
+        else:
+            raise StandardError('mode error.')
 
     def get_gc_params(self):
         gc_params = dict()
@@ -61,7 +63,7 @@ def get_layer_class(params):
 if __name__ == '__main__':
     import argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument('-L', '--Layer', dest='Layer_name', type=str, default='SelectionLayer',
+    parser.add_argument('-L', '--Layer', dest='Layer_name', type=str, default='StackFullConnect',
                         help='FullConnect/MultiFullConnect/LSTM/Attention/StackFullConnect/RNN/GRU'
                              'SelectionLayer')
 

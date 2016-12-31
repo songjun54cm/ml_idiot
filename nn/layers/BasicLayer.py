@@ -155,7 +155,9 @@ def add_to_params(params, new_params, param_name):
     params[param_name] = new_params
     return new_params
 
-def init_matrix(shape, rng=np.random.RandomState(1234), name=None, magic_number=0.1):
+def init_matrix(shape, rng=np.random.RandomState(1234), name=None, magic_number=None):
+    if magic_number is None:
+        magic_number = 1.0 / np.power(np.prod(shape), 1.0/len(shape))
     return rng.standard_normal(shape) * magic_number
 
 class BasicLayer(object):
@@ -180,6 +182,10 @@ class BasicLayer(object):
         param_name = self.get_variable_name(name)
         param_values = add_to_params(self.params, init_matrix(shape, rng=self.rng), param_name=param_name)
         return param_values, param_name
+
+    def reinit(self):
+        for p in self.params.keys():
+            self.params[p].setfield(init_matrix(self.params[p].shape, rng=self.rng, ), dtype=self.params[p].dtype)
 
     def get_params(self):
         return self.params

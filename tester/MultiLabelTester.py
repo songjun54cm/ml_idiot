@@ -8,8 +8,12 @@ class MultiLabelTester(BasicTester):
     def __init__(self):
         super(MultiLabelTester, self).__init__()
         self.evaluator = MultiLabelEvaluator()
+        self.init_tester()
 
-    def test_batch(self, model, batch_data, metrics):
+    def init_tester(self):
+        self.top_f1 = 0
+
+    def test_batch(self, model, batch_data):
         gth_feas = [data['target_feas'] for data in batch_data]
         preds = model.predict_batch(batch_data)
         losses = list()
@@ -21,7 +25,7 @@ class MultiLabelTester(BasicTester):
             'loss': loss,
             'sample_num': len(batch_data),
             'gth_feas': np.concatenate(gth_feas),
-            'pred_feas': np.concatenate(preds)
+            'pred_feas': np.concatenate(preds) if type(preds) is list else preds
         }
         return res
 
@@ -45,12 +49,12 @@ class MultiLabelTester(BasicTester):
         elif met in ['tp', 'TruePositive']:
             return met, self.evaluator.true_positive_rate(gth_state_feas, pred_state_feas)
         elif met in ['tn', 'TrueNegative']:
-            return 'True-Negative', self.evaluator.true_negative_rate(gth_state_feas, pred_state_feas)
+            return met, self.evaluator.true_negative_rate(gth_state_feas, pred_state_feas)
         elif met in ['fp', 'FalsePositive']:
-            return 'False-Positive', self.evaluator.false_positive_rate(gth_state_feas, pred_state_feas)
+            return met, self.evaluator.false_positive_rate(gth_state_feas, pred_state_feas)
         elif met in ['fn', 'FalseNegative']:
             return met, self.evaluator.false_negative_rate(gth_state_feas, pred_state_feas)
-        elif met in ['acc', 'Accuracy']:
+        elif met in ['acc', 'accuracy', 'Accuracy']:
             return met, self.evaluator.accuracy(gth_state_feas, pred_state_feas)
         else:
             print 'metric: %s' % met
@@ -60,7 +64,7 @@ class MultiLabelTester(BasicTester):
         # accuracy = res['Accuracy']
         # truetrue = res['True-True']
         # acc_tt = (accuracy + truetrue)/2.0
-        f1_socre = res['F1']
+        f1_socre = res['metrics']['F1']
         if f1_socre > self.top_f1:
             self.top_f1 = f1_socre
             save_tag = True
