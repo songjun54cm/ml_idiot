@@ -78,6 +78,9 @@ class NeuralNetworkSolver(BasicSolver):
                     validate_res = {'train': train_res, 'valid': valid_res, 'test': test_res}
 
                     self.save_or_not(valid_res, model, valid_csv_message, validate_res)
+            self.decay_learning_rate()
+    def decay_learning_rate(self):
+        self.state['learning_rate'] = self.state['learning_rate'] * self.state['learning_rate_decay']
 
     def update_smooth_train_loss(self, new_loss):
         # calculate smooth cost
