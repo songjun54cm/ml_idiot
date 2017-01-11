@@ -180,7 +180,10 @@ class BasicLayer(object):
 
     def add_params(self, shape, name):
         param_name = self.get_variable_name(name)
-        param_values = add_to_params(self.params, init_matrix(shape, rng=self.rng), param_name=param_name)
+        if shape[0] > 1:
+            param_values = add_to_params(self.params, init_matrix(shape, rng=self.rng), param_name=param_name)
+        else:
+            param_values = add_to_params(self.params, np.zeros(shape), param_name = param_name)
         return param_values, param_name
 
     def reinit(self):

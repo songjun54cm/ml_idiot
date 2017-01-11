@@ -66,6 +66,13 @@ class BasicDataProvider(object):
         for key in self.__dict__.keys():
             self.__dict__[key] = d[key]
 
+    def get_split_fold_nums(self, fold_num, k):
+        valid_fold = fold_num
+        test_fold = (fold_num+1)%k
+        train_valid_fold = (fold_num+2)%k
+        train_folds = (np.arange(k-2) + fold_num + 2) % k
+        return train_folds, train_valid_fold, valid_fold, test_fold
+
     # def iter_split_batches(self, batch_size, split):
     #     batch = list()
     #     datas = self.get_split(split)

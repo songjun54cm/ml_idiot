@@ -5,7 +5,8 @@ import cPickle as pickle
 from ml_idiot.utils.utils import get_data_splits
 def create_model(model_class, model_file_path):
     print 'load model from %s' % model_file_path
-    model_dump = pickle.load(open(model_file_path,'rb'))
+    with open(model_file_path, 'rb') as mf:
+        model_dump = pickle.load(mf)
     state = model_dump['state']
     model = model_class(state)
     model.load_from_dump(model_dump)
