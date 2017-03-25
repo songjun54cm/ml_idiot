@@ -126,7 +126,7 @@ def get_gradient_function(fun_name):
     elif fun_name == 'sigmoid':
         return grad_sigmoid
     elif fun_name == 'softmax':
-        return grad_softmax
+        return get_grad_softmax
     elif fun_name == 'sigmoid10':
         return grad_sigmoid10
     elif fun_name == 'maxhot':
@@ -178,12 +178,14 @@ class BasicLayer(object):
     def get_variable_name(self, name):
         return self.state['layer_name'] + '_' + name
 
-    def add_params(self, shape, name):
+    def add_params(self, shape, name, value_type='matrix'):
         param_name = self.get_variable_name(name)
-        if shape[0] > 1:
+        if value_type == 'matrix':
             param_values = add_to_params(self.params, init_matrix(shape, rng=self.rng), param_name=param_name)
-        else:
+        elif value_type == 'bias':
             param_values = add_to_params(self.params, np.zeros(shape), param_name = param_name)
+        else:
+            raise StandardError('value type error.')
         return param_values, param_name
 
     def reinit(self):
