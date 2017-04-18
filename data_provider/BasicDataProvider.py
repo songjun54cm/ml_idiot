@@ -1,7 +1,8 @@
+__author__ = 'SongJun-Dell'
 import pickle
 import random
 import numpy as np
-__author__ = 'SongJun-Dell'
+import time
 
 def get_prob(freq_list):
     probs = np.array(freq_list, dtype=np.float32)
@@ -22,30 +23,6 @@ class BasicDataProvider(object):
     def split_size(self, split):
         return len(self.splits[split])
 
-    def get_split_data(self, samples_list, rate_list):
-        num_sample = len(samples_list)
-        random_idx = range(0, num_sample)
-        random.seed(0)
-        random.shuffle(random_idx)
-        split_lens = [ int(srate * num_sample) for srate in rate_list]
-        split_idxes = list()
-        split_data_list = list()
-        spos = 0
-        epos = 0
-        for pos in split_lens:
-            epos += pos
-            split_idxes.append(random_idx[spos:epos])
-            spos = epos
-
-        for idxes in split_idxes:
-            split_data_list.append([samples_list[di] for di in idxes])
-        return split_data_list
-
-    def get_n_fold_splits(self, sample_list, n):
-        rate_list = [ 1.0/n for i in xrange(n) ]
-        fold_splits = self.get_split_data(sample_list, rate_list)
-        return fold_splits
-
     def form_splits(self, train_folds, train_valid_fold, valid_fold, test_fold):
         self.splits['train'] = []
         for fold_id in train_folds:
@@ -54,18 +31,26 @@ class BasicDataProvider(object):
         self.splits['valid']= self.fold_splits[valid_fold]
         self.splits['test'] = self.fold_splits[test_fold]
 
-    def save(self, file_path):
-        print 'trying to save provider into %s' % file_path
+    def save(self, file_path, verbose=False):
+        if verbose:
+            stime = time.time()
+            print('trying to save provider into %s' % file_path),
         with open(file_path, 'wb') as f:
             pickle.dump(self.__dict__, f)
+        if verbose:
+            print('finish in %.2f seconds.' % (time.time()-stime))
 
-    def load(self, file_path):
+    def load(self, file_path, verbose=False):
+        if verbose:
+            start = time.timt()
+            print('loading data provider...'),
         with open(file_path, 'rb') as f:
             d = pickle.load(f)
         # self.splits = d['splits']
         for key in self.__dict__.keys():
             self.__dict__[key] = d[key]
-
+        if verbose:
+            print('finish in %.2f seconds.' % (time.time()-start))
     def get_split_fold_nums(self, fold_num, k):
         valid_fold = fold_num
         test_fold = (fold_num+1)%k

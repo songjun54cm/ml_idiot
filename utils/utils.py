@@ -1,6 +1,7 @@
 __author__ = 'SongJun-Dell'
 import time, os
 
+path_join = os.path.join
 
 def counting_time(func):
     def _deco(*args, **kwargs):
@@ -42,7 +43,7 @@ def insert_list_to_voca(in_list, voca=None):
     return voca
 
 
-def get_voca_from_count(key_count, insert_list=[], unknow=True):
+def get_voca_from_count(key_count, insert_list=list(), unknow=True):
     if unknow:
         in_list = ['UNKNOW'] + insert_list
     else:
@@ -117,3 +118,28 @@ def strdecode(sentence):
         except UnicodeDecodeError:
             sentence = sentence.decode('gbk', 'ignore')
     return sentence
+
+
+
+def pickle_load(file_path, verbose=False):
+    import cPickle as pickle
+    if verbose:
+        print('load data from %s, ...' % file_path),
+        start_time = time.time()
+    with open(file_path, 'rb') as f:
+        res = pickle.load(f)
+    if verbose:
+        print('finish. in %f seconds' % (time.time()-start_time))
+    return res
+pk_load = pickle_load
+
+def pickle_dump(obj, file_path, verbose=False):
+    if verbose:
+        print('save data to %s, ...' % file_path),
+        start_time = time.time()
+    import cPickle as pickle
+    with open(file_path, 'wb') as f:
+        pickle.dump(obj, f)
+    if verbose:
+        print('finish. in %f seconds' % (time.time()-start_time))
+pk_dump = pickle_dump
