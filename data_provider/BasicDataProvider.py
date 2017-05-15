@@ -3,6 +3,7 @@ import pickle
 import random
 import numpy as np
 import time
+import logging
 
 def get_prob(freq_list):
     probs = np.array(freq_list, dtype=np.float32)
@@ -15,7 +16,23 @@ def get_prob(freq_list):
 class BasicDataProvider(object):
     def __init__(self):
         self.splits = dict()
-        self.fold_splits = list()
+        self.fold_splits = list()\
+
+    def build(self, state):
+        print('build data provider from raw data')
+        raise NotImplementedError
+
+    def create(self, state):
+        import os
+        from ml_idiot.data_provider import get_dp_file_path
+        dp_file_path = get_dp_file_path(state)
+        if os.path.exists(dp_file_path):
+            self.load(dp_file_path, verbose=True)
+            logging.info('load data provider from %s.' % dp_file_path)
+        else:
+            self.build(state)
+            self.save(dp_file_path)
+            logging.info('build data provider and save into %s' % dp_file_path)
 
     def get_split(self, split):
         return self.splits[split]
@@ -49,8 +66,10 @@ class BasicDataProvider(object):
         # self.splits = d['splits']
         for key in self.__dict__.keys():
             self.__dict__[key] = d[key]
+        self.prepare_data()
         if verbose:
             print('finish in %.2f seconds.' % (time.time()-start))
+
     def get_split_fold_nums(self, fold_num, k):
         valid_fold = fold_num
         test_fold = (fold_num+1)%k
@@ -70,21 +89,26 @@ class BasicDataProvider(object):
     #     if len(batch) > 0:
     #         yield batch
 
-    def iter_training_batch(self, batch_size, rng=random.Random(1234)):
-        for iter_data in self.iter_split_batches(batch_size, 'train', rng=rng):
+    def iter_training_batch(self, batch_size, rng=random.Random(1234), opts=None):
+        for iter_data in self.iter_split_batches(batch_size, 'train', rng=rng, opts=opts):
             yield iter_data
 
-    def iter_split_batches(self, batch_size, split, rng=random.Random(1234)):
+    def iter_split_batches(self, batch_size, split, rng=random.Random(1234), shuffle=False, opts=None):
         split_size = len(self.splits[split])
         idxs = range(split_size)
-        rng.shuffle(idxs)
+        if shuffle:
+            rng.shuffle(idxs)
         split_datas = self.splits[split]
         start_pos = 0
         while start_pos < split_size:
             end_pos = start_pos + batch_size
             iter_datas = [split_datas[idxs[id]] for id in xrange(start_pos, min(split_size,end_pos))]
             start_pos = end_pos
-            yield self.form_data(iter_datas)
+            yield self.form_data(iter_datas, opts)
+
+    def prepare_data(self):
+        # prepare data after load from file
+        pass
 
     def form_data(self, batch_data, options=None):
         return batch_data
