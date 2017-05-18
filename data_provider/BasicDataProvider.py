@@ -57,15 +57,29 @@ class BasicDataProvider(object):
         if verbose:
             print('finish in %.2f seconds.' % (time.time()-stime))
 
-    def load(self, file_path, verbose=False):
+    def load(self, file_path, mode='full', verbose=False):
+        """
+
+        :param file_path:
+        :param mode: full: fill in all the field;
+                     restrict: only fill in the field initialised.
+        :param verbose:
+        :return:
+        """
         if verbose:
-            start = time.timt()
+            start = time.time()
             print('loading data provider...'),
         with open(file_path, 'rb') as f:
             d = pickle.load(f)
         # self.splits = d['splits']
-        for key in self.__dict__.keys():
-            self.__dict__[key] = d[key]
+        if mode=='restrict':
+            for key in self.__dict__.keys():
+                self.__dict__[key] = d[key]
+        elif mode=='full':
+            for key in d.keys():
+                self.__dict__[key] = d[key]
+        else:
+            raise StandardError('%s mode not recognised.'%mode)
         self.prepare_data()
         if verbose:
             print('finish in %.2f seconds.' % (time.time()-start))

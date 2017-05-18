@@ -10,6 +10,16 @@ import numpy as np
 from copy import deepcopy
 from ml_idiot.solver.BasicSolver import log_to_file
 
+"""
+state = {
+    'batch_size': 0,
+    'max_epoch': 0,
+    'valid_epoch': 0,
+    'valid_batch_size': 0,
+    'loss_scale': 1,
+}
+"""
+
 class NeuralNetworkSolver(BasicSolver):
     def __init__(self, state):
         super(NeuralNetworkSolver, self).__init__(state)
