@@ -4,17 +4,17 @@ import time, sys
 from NeuralNetworkSolver import NeuralNetworkSolver
 
 class ParallelNNSolver(NeuralNetworkSolver):
-    def __init__(self, state):
-        super(ParallelNNSolver, self).__init__(state)
+    def __init__(self, config):
+        super(ParallelNNSolver, self).__init__(config)
         self.pool = None
-        if state['parallel']:
-            print 'create parallel pool with %d processes.' % self.state['num_processes']
-            self.pool = Pool(processes=self.state['num_processes'])
+        if config['parallel']:
+            print 'create parallel pool with %d processes.' % self.config['num_processes']
+            self.pool = Pool(processes=self.config['num_processes'])
 
     def update_model_one_batch(self, model, batch_data):
-        if self.state['parallel']:
+        if self.config['parallel']:
             # loss_cost = self.parallel_train_process_one_batch(models, batch_data)
-            loss_cost, grad_params = model.train_one_batch(batch_data, self.pool, self.state['num_processes'])
+            loss_cost, grad_params = model.train_one_batch(batch_data, self.pool, self.config['num_processes'])
         else:
             loss_cost, grad_params = model.train_one_batch(batch_data)
             # loss_cost = self.train_process_one_batch(models, batch_data)

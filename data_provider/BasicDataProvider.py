@@ -91,18 +91,6 @@ class BasicDataProvider(object):
         train_folds = (np.arange(k-2) + fold_num + 2) % k
         return train_folds, train_valid_fold, valid_fold, test_fold
 
-    # def iter_split_batches(self, batch_size, split):
-    #     batch = list()
-    #     datas = self.get_split(split)
-    #     for d in datas:
-    #         batch.append(d)
-    #         if len(batch) >= batch_size:
-    #             yield batch
-    #             batch = list()
-    #
-    #     if len(batch) > 0:
-    #         yield batch
-
     def iter_training_batch(self, batch_size, rng=random.Random(1234), opts=None):
         for iter_data in self.iter_split_batches(batch_size, 'train', rng=rng, opts=opts):
             yield iter_data

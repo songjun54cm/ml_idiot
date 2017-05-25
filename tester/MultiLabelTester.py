@@ -1,5 +1,4 @@
 __author__ = 'SongJun-Dell'
-from collections import OrderedDict
 from ml_idiot.tester.BasicTester import BasicTester
 from ml_idiot.evaluator.MultiLabelEvaluator import MultiLabelEvaluator
 import numpy as np
@@ -29,21 +28,9 @@ class MultiLabelTester(BasicTester):
         }
         return res
 
-    def get_metrics(self, res, metrics):
+    def get_metric_value(self, res, met):
         gth_state_feas = res['gth_feas']
         pred_state_feas = res['pred_feas']
-        res = OrderedDict()
-        if type(metrics) == list:
-            for met in metrics:
-                met_str, met_value = self.get_metric_value(met, gth_state_feas, pred_state_feas)
-                res[met_str] = met_value
-                # print met_value
-        else:
-            met_str, met_value = self.get_metric_value(metrics, gth_state_feas, pred_state_feas)
-            res[met_str] = met_value
-        return res
-
-    def get_metric_value(self, met, gth_state_feas, pred_state_feas):
         if met in ['f1', 'F1']:
             return met, self.evaluator.f1_score(gth_state_feas, pred_state_feas)
         elif met in ['tp', 'TruePositive']:

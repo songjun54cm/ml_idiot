@@ -3,8 +3,8 @@ import json, time
 from NeuralNetworkSolver import NeuralNetworkSolver
 
 class TheanoSolver(NeuralNetworkSolver):
-    def __init__(self, state):
-        super(TheanoSolver, self).__init__(state)
+    def __init__(self, config):
+        super(TheanoSolver, self).__init__(config)
 
 
     def update_model_one_batch(self, model, batch_data):
