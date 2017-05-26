@@ -2,8 +2,25 @@ __author__ = 'JunSong<songjun54cm@gmail.com>'
 from keras.models import Model
 from keras import optimizers
 import keras.backend as K
-class KerasModel(Model):
 
+def get_optimizer(config):
+    if(config['optimizer'] == 'rmsprop'):
+        opti = optimizers.rmsprop(lr=config['learning_rate'],
+                                  clipvalue=config['grad_clip'],
+                                  decay=config['decay_rate'])
+        return opti
+    elif(config['optimizer'] == 'adadelta'):
+        opti = optimizers.adadelta(lr=config['learning_rate'],
+                                   clipvalue=config['grad_clip'])
+        return opti
+    else:
+        raise StandardError('optimizer name error')
+
+
+class KerasModel(Model):
+    def __init__(self, inputs, outputs, name=None):
+        self.save_ext = 'h5'
+        super(KerasModel, self).__init__(inputs, outputs, name=name)
     def loss_pred_on_batch(self, x, y, sample_weight=None):
         """Test the model on a single batch of samples.
 
@@ -62,10 +79,7 @@ class KerasModel(Model):
 
     def build_model(self, config):
         print self.summary()
-        opti = getattr(optimizers, config['optimizer'])
-        self.optimizer = opti(lr=config['learning_rate'],
-                              clipvalue=config['grad_clip'],
-                              decay=config['decay_rate'])
+        self.optimizer = get_optimizer(config)
         self.compile(optimizer=self.optimizer,
                      loss=config['loss'],
                      metrics=config['metrics'])
@@ -74,3 +88,13 @@ class KerasModel(Model):
         self._make_test_function()
         self._make_predict_function()
         self._make_loss_pred_function()
+
+    def train_one_batch(self, batch_data):
+        x = batch_data['x']
+        y = batch_data['y']
+        outs = self.train_on_batch(x, y)
+        loss = outs[0]
+        res = {
+            'loss': loss
+        }
+        return res

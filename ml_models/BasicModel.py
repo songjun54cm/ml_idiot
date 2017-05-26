@@ -2,6 +2,7 @@ __author__ = 'SongJun-Dell'
 import cPickle as pickle
 class BasicModel(object):
     def __init__(self, state):
+        self.save_ext = 'pkl'
         self.state = state
 
     def save(self, file_path):

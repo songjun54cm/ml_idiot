@@ -22,21 +22,8 @@ class BasicTester(object):
             metric_res[met_str] = met_value
         return metric_res
 
-    def detect_to_save(self, res, model):
-        metric_score = res['metrics'].get(self.top_metric_name)
-        if metric_score > self.top_metric:
-            self.top_metric = metric_score
-            save_tag = True
-        else:
-            save_tag = False
-        # cp_sufix = 'accuracy_%.3f_tt_%.3f_.pkl' % (accuracy, truetrue)
-        cp_sufix = '%s_%.6f_.pkl' % (self.top_metric_name, metric_score)
-        return save_tag, cp_sufix
-
     # need to be implemented
     def init_tester(self):
-        self.top_metric = 0
-        self.top_metric_name = ''
         raise NotImplementedError('init tester not implemented')
 
     def test_batch(self, model, data_batch):

@@ -44,6 +44,7 @@ class NeuralNetworkSolver(BasicSolver):
         self.last_save_model_file_path = None
         self.top_performance_csv_message = None
         self.top_performance_valid_res = None
+        self.top_metric = 0
         self.tester.init_tester()
 
     def train(self, model, data_provider, method='normal'):
@@ -98,11 +99,11 @@ class NeuralNetworkSolver(BasicSolver):
             self.decay_learning_rate()
 
     def decay_learning_rate(self):
-        self.config['learning_rate'] = self.config['learning_rate'] * self.learning_rate_decay
+        self.optimizer.decay_learning_rate()
 
     def update_model_one_batch(self, model, batch_data):
         loss, grad_params = model.train_one_batch(batch_data)
-        self.update_model(model, grad_params, mode=self.config['sgd_mode'])
+        self.optimizer.optimize_model(model, grad_params)
         return loss
 
     def train_one_batch(self, model, batch_data, epoch_i):
@@ -139,7 +140,7 @@ class NeuralNetworkSolver(BasicSolver):
 
     def validate_on_split(self, model, data_provider, split):
         t0 = time.time()
-        res = self.tester.test_on_split(model, data_provider, split)
+        res = self.test_on_split(model, data_provider, split)
         metrics = self.tester.get_metrics(res, self.metrics)
         time_eclipse = time.time() - t0
 
@@ -154,25 +155,37 @@ class NeuralNetworkSolver(BasicSolver):
         self.log_train_message(message)
         return results
 
-    def form_valid_message(self, res):
-        message = ''
-        for key in self.metrics:
-            message += '%s: %.5f ' % (key, res['metrics'][key])
-        message = 'evaluate %10d %15s samples in %.3fs, Loss: %5.3f. ' \
-                  % (res['sample_num'], res['split'], res['seconds'], res['loss']) + message
-        return message
+    def test_on_split(self, model, data_provider, split):
+        total_loss = []
+        sample_num = 0
+        gth_feas = []
+        pred_feas = []
+        for batch_data in data_provider.iter_split_batches(self.valid_batch_size, split):
+            res = self.test_one_batch(model, batch_data)
+            total_loss.append(res['loss'])
+            sample_num += res['sample_num']
+            gth_feas.append(res['gth_feas'])
+            pred_feas.append(res['pred_feas'])
+        res = {
+            'loss': np.mean(total_loss),
+            'sample_num': sample_num,
+            'gth_feas': np.concatenate(gth_feas),
+            'pred_feas': np.concatenate(pred_feas)
+        }
+        return res
 
-    def form_valid_csv(self, mode, res=None):
-        if mode == 'head':
-            head_message = 'sample_num,seconds,split,Loss,'+','.join(self.metrics)
-            return head_message
-        elif mode == 'body':
-            body_message = '%d,%.3f,%s,%f' % (res['sample_num'], res['seconds'], res['split'], res['loss'])
-            for met in self.metrics:
-                body_message += ',%f' % res['metrics'][met]
-            return body_message
-        else:
-            raise StandardError('form_valid_csv mode error.')
+    def test_one_batch(self, model, batch_data):
+        outs = model.loss_pred_on_batch(batch_data['x'], batch_data['y'])
+        loss = outs[0]
+        preds = outs[1]
+        gth_feas = batch_data['y']
+        res = {
+            'loss': loss,
+            'sample_num': self.get_batch_size(batch_data),
+            'gth_feas': np.concatenate(gth_feas) if isinstance(gth_feas, list) else gth_feas,
+            'pred_feas': np.concatenate(preds) if isinstance(preds, list) else preds
+        }
+        return res
 
     def test(self, model, data_provider, method='normal'):
         if method == 'normal':
