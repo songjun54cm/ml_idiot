@@ -5,7 +5,7 @@ class BasicOptimizer(object):
     def __init__(self, config):
         self.grad_clip = config['grad_clip']
         self.momentum = config['momentum']
-        self.smooth_eps = config['smooth_eps']
+        self.smooth_eps = config.get('smooth_eps', 1e-8)
         self.learning_rate = config['learning_rate']
         self.learning_rate_decay = config.get('learning_rate_decay', 1.0)
         self.grad_cache = dict()

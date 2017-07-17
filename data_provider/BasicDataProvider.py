@@ -18,7 +18,7 @@ class BasicDataProvider(object):
         self.splits = dict()
         self.fold_splits = list()\
 
-    def build(self, state):
+    def build(self, config):
         print('build data provider from raw data')
         raise NotImplementedError
 
@@ -38,7 +38,10 @@ class BasicDataProvider(object):
         return self.splits[split]
 
     def split_size(self, split):
-        return len(self.splits[split])
+        if isinstance(self.splits[split], list):
+            return len(self.splits[split])
+        elif isinstance(self.splits[split], dict):
+            return self.splits[split]['split_size']
 
     def form_splits(self, train_folds, train_valid_fold, valid_fold, test_fold):
         self.splits['train'] = []
@@ -95,18 +98,24 @@ class BasicDataProvider(object):
         for iter_data in self.iter_split_batches(batch_size, 'train', rng=rng, opts=opts):
             yield iter_data
 
-    def iter_split_batches(self, batch_size, split, rng=random.Random(1234), shuffle=False, opts=None):
-        split_size = len(self.splits[split])
+    def iter_split_batches(self, batch_size, split, rng=random.Random(1234), shuffle=False, mode='ordered', opts=None):
+        split_size = self.split_size(split)
         idxs = range(split_size)
         if shuffle:
             rng.shuffle(idxs)
         split_datas = self.splits[split]
-        start_pos = 0
-        while start_pos < split_size:
-            end_pos = start_pos + batch_size
-            iter_datas = [split_datas[idxs[id]] for id in xrange(start_pos, min(split_size,end_pos))]
-            start_pos = end_pos
-            yield self.form_data(iter_datas, opts)
+        if mode=='ordered':
+            start_pos = 0
+            while start_pos < split_size:
+                end_pos = start_pos + batch_size
+                iter_datas = [split_datas[idxs[id]] for id in xrange(start_pos, min(split_size,end_pos))]
+                start_pos = end_pos
+                yield self.form_data(iter_datas, opts)
+        elif mode=='random':
+            for i in xrange(0,split_size,batch_size):
+                pos = random.randint(0, split_size-batch_size)
+                iter_datas = [split_datas[idxs[idx]] for idx in xrange(pos, pos+batch_size)]
+                yield self.form_data(iter_datas, opts)
 
     def prepare_data(self):
         # prepare data after load from file

@@ -112,7 +112,7 @@ class BasicSolver(object):
             log_to_file(message, file_name, self.config['out_folder'])
 
     def detect_loss_explosion(self, loss):
-        if loss > self.smooth_train_cost * 100:
+        if loss > self.smooth_train_loss * 100:
             message = 'Aborting, loss seems to exploding. try to run gradient check or lower the learning rate.'
             self.log_train_message(message)
             return False

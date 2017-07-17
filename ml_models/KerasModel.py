@@ -13,6 +13,11 @@ def get_optimizer(config):
         opti = optimizers.adadelta(lr=config['learning_rate'],
                                    clipvalue=config['grad_clip'])
         return opti
+    elif(config['optimizer'] == 'sgd'):
+        opti = optimizers.sgd(lr=config['learning_rate'],
+                              momentum=config['momentum'],
+                              decay=config['learning_rate_decay'])
+        return opti
     else:
         raise StandardError('optimizer name error')
 
@@ -21,6 +26,7 @@ class KerasModel(Model):
     def __init__(self, inputs, outputs, name=None):
         self.save_ext = 'h5'
         super(KerasModel, self).__init__(inputs, outputs, name=name)
+
     def loss_pred_on_batch(self, x, y, sample_weight=None):
         """Test the model on a single batch of samples.
 

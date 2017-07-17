@@ -1,9 +1,9 @@
 __author__ = 'SongJun-Dell'
 import cPickle as pickle
 class BasicModel(object):
-    def __init__(self, state):
+    def __init__(self, config):
         self.save_ext = 'pkl'
-        self.state = state
+        self.state = config
 
     def save(self, file_path):
         print 'trying to save model into %s' % file_path
