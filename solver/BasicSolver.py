@@ -4,7 +4,7 @@ import numpy as np
 import cPickle as pickle
 from ml_idiot.tester.BasicTester import BasicTester
 import importlib
-
+import datetime
 def add_new_line(message):
     if message[-1] != '\n': message += '\n'
     return message
@@ -51,6 +51,9 @@ class BasicSolver(object):
         if not os.path.exists(self.config['out_folder']):
             print 'create out folder %s.' % self.config['out_folder']
             os.makedirs(self.config['out_folder'])
+        config_pkl_file = os.path.join(self.config['out_folder'], 'config.pkl')
+        pickle.dump(self.config, open(config_pkl_file, 'wb'))
+        print('save current config into %s' % config_pkl_file)
 
     def create_log_files(self):
         self.config['train_log_file'] = os.path.join(self.config['out_folder'], 'train_log.log')
@@ -173,8 +176,9 @@ class BasicSolver(object):
         message = ''
         for key in self.metrics:
             message += '%s: %.5f ' % (key, res['metrics'][key])
-        message = 'evaluate %10d %15s samples in %.3fs, Loss: %5.3f. ' \
-                  % (res['sample_num'], res['split'], res['seconds'], res['loss']) + message
+        message = '%s evaluate %10d %15s samples in %.3fs, Loss: %5.3f. ' \
+                  % (datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                     res['sample_num'], res['split'], res['seconds'], res['loss']) + message
         return message
 
     def form_valid_csv(self, mode, res=None):

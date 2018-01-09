@@ -22,15 +22,19 @@ class BasicDataProvider(object):
         print('build data provider from raw data')
         raise NotImplementedError
 
-    def create(self, state):
+    def create(self, config):
         import os
         from ml_idiot.data_provider import get_dp_file_path
-        dp_file_path = get_dp_file_path(state)
-        if os.path.exists(dp_file_path):
-            self.load(dp_file_path, verbose=True)
-            logging.info('load data provider from %s.' % dp_file_path)
+        if ('dp_file' in config) and config['dp_file'] is not None :
+            dp_file_path = config['dp_file']
         else:
-            self.build(state)
+            dp_file_path = get_dp_file_path(config)
+        if os.path.exists(dp_file_path):
+            print('start loading data provider from %s.' % dp_file_path)
+            self.load(dp_file_path, verbose=True)
+            logging.info('loaded data provider.')
+        else:
+            self.build(config)
             self.save(dp_file_path)
             logging.info('build data provider and save into %s' % dp_file_path)
 
@@ -51,7 +55,7 @@ class BasicDataProvider(object):
         self.splits['valid']= self.fold_splits[valid_fold]
         self.splits['test'] = self.fold_splits[test_fold]
 
-    def save(self, file_path, verbose=False):
+    def save(self, file_path, verbose=True):
         if verbose:
             stime = time.time()
             print('trying to save provider into %s' % file_path),
@@ -60,7 +64,7 @@ class BasicDataProvider(object):
         if verbose:
             print('finish in %.2f seconds.' % (time.time()-stime))
 
-    def load(self, file_path, mode='full', verbose=False):
+    def load(self, file_path, mode='full', verbose=True):
         """
 
         :param file_path:
