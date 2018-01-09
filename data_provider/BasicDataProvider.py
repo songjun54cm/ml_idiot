@@ -5,6 +5,8 @@ import numpy as np
 import time
 import logging
 
+from ml_idiot.utils.data_process import get_n_fold_splits
+
 def get_prob(freq_list):
     probs = np.array(freq_list, dtype=np.float32)
     probs /= np.sum(probs)
@@ -15,8 +17,10 @@ def get_prob(freq_list):
 
 class BasicDataProvider(object):
     def __init__(self):
+        # contains split data: train, valid, test, train_valid
         self.splits = dict()
-        self.fold_splits = list()\
+        # contains N fold of data.
+        self.fold_splits = list()
 
     def build(self, config):
         print('build data provider from raw data')
@@ -46,6 +50,10 @@ class BasicDataProvider(object):
             return len(self.splits[split])
         elif isinstance(self.splits[split], dict):
             return self.splits[split]['split_size']
+
+    # create K fold splits with uniform distribution
+    def create_fold_splits(self, sample_list, K, seed=0):
+        self.fold_splits = get_n_fold_splits(sample_list, K)
 
     def form_splits(self, train_folds, train_valid_fold, valid_fold, test_fold):
         self.splits['train'] = []
