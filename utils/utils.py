@@ -156,12 +156,14 @@ def pickle_dump(obj, file_path, verbose=False):
         print('finish. in %f seconds' % (time.time()-start_time))
 pk_dump = pickle_dump
 
-
+import logging
+import functools
 def time_eclipse(func):
+    @functools.wraps(func)
     def wrapper(*args, **kw):
-        print('running: %s ...' % func.__name__),
+        logging.info('running: %s ...' % func.__name__),
         start_time = time.time()
         res = func(*args, **kw)
-        print('eclipse time: %.3f' % time.time()-start_time)
+        logging.info('%s finish in %.3f seconds' % (func.__name__, time.time()-start_time))
         return res
     return wrapper
