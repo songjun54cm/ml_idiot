@@ -14,6 +14,5 @@ def pre_build_dp(config, dp_class):
         print 'data provider already exists in %s'%dp_file_path
     else:
         data_provider = dp_class()
-        data_provider.build(config)
-        data_provider.save(dp_file_path)
+        data_provider.create(config)
         print('build data provider and save into %s' % dp_file_path)

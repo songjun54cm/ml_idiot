@@ -9,11 +9,11 @@ def update_config(config, user_config):
             config[key] = user_config[key]
     return config
 
-def get_data_folder(state):
-    return path_join(state['proj_folder'], 'data', state['data_set_name'])
+def get_data_folder(config):
+    return path_join(config['proj_folder'], 'data', config['data_set_name'])
 
-def get_dp_file_path(state):
-    return path_join(state['data_folder'], '%s_%s_data_provider.pkl'%(state['model_name'], state['data_set_name']))
+def get_dp_file_path(config):
+    return path_join(config['data_folder'], '%s_%s_data_provider.pkl'%(config['model_name'], config['data_set_name']))
 
 def counting_time(func):
     def _deco(*args, **kwargs):
