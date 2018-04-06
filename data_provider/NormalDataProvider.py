@@ -1,9 +1,11 @@
 __author__ = 'JunSong<songjun54cm@gmail.com>'
 import abc, random
 from copy import deepcopy
+import logging
 
 from ml_idiot.data_provider.BasicDataProvider import BasicDataProvider
 from ml_idiot.utils.data_process import get_split_data
+
 
 class NormalDataProvider(BasicDataProvider):
     """Provide Data in Three splits: train/valid/test and train_valid.
@@ -11,11 +13,11 @@ class NormalDataProvider(BasicDataProvider):
         splits: data splits, train/valid/test/tran_valid
         split_ratio: the ratio of split train/valid/test
     """
-    splits = dict()
-    split_ratios = []
-
     def __init__(self):
         super(NormalDataProvider, self).__init__()
+        self.splits = dict()
+        self.split_ratios = []
+        self.valid_batch_size = None
 
     @abc.abstractmethod
     def load_raw_data_samples(self, config):
@@ -77,15 +79,24 @@ class NormalDataProvider(BasicDataProvider):
         if shuffle:
             rng.shuffle(idxs)
         split_datas = self.splits[split]
-        if mode=='ordered':
-            start_pos = 0
-            while start_pos < split_size:
-                end_pos = start_pos + batch_size
-                iter_datas = [split_datas[idxs[id]] for id in xrange(start_pos, min(split_size,end_pos))]
-                start_pos = end_pos
-                yield self.form_data(iter_datas, opts)
-        elif mode=='random':
-            for i in xrange(0,split_size,batch_size):
-                pos = random.randint(0, split_size-batch_size)
-                iter_datas = [split_datas[idxs[idx]] for idx in xrange(pos, pos+batch_size)]
-                yield self.form_data(iter_datas, opts)
+        if batch_size is None:
+            yield [split_datas[id] for id in idxs]
+        else:
+            if mode == 'ordered':
+                start_pos = 0
+                while start_pos < split_size:
+                    end_pos = start_pos + batch_size
+                    iter_datas = [split_datas[idxs[id]] for id in range(start_pos, min(split_size, end_pos))]
+                    start_pos = end_pos
+                    yield self.form_data(iter_datas, opts)
+            elif mode == 'random':
+                for i in range(0, split_size, batch_size):
+                    pos = random.randint(0, split_size-batch_size)
+                    iter_datas = [split_datas[idxs[idx]] for idx in range(pos, pos+batch_size)]
+                    yield self.form_data(iter_datas, opts)
+
+    def summarize(self):
+        super(NormalDataProvider, self).summarize()
+        logging.info('train data size: %d' % self.split_size('train'))
+        logging.info('valid data size: %d' % self.split_size('valid'))
+        logging.info('test data size: %d' % self.split_size('test'))

@@ -7,6 +7,18 @@ import logging
 import abc
 
 from ml_idiot.utils.data_process import get_n_fold_splits
+from ml_idiot.utils.utils import counting_time
+
+def get_batch_size(batch_data):
+    if isinstance(batch_data, list):
+        return len(batch_data)
+    elif isinstance(batch_data, dict):
+        return batch_data['batch_size']
+    elif isinstance(batch_data, np.ndarray):
+        return batch_data.shape[0]
+    else:
+        raise BaseException('get batch size error!')
+
 
 def get_prob(freq_list):
     probs = np.array(freq_list, dtype=np.float32)
@@ -15,6 +27,7 @@ def get_prob(freq_list):
     probs = np.log(probs)
     probs -= np.max(probs)
     return probs
+
 
 class BasicDataProvider(object):
     def __init__(self):
@@ -38,6 +51,13 @@ class BasicDataProvider(object):
         """
         raise NotImplementedError
 
+    def summarize(self):
+        """
+        logging data provider basic information
+        :return:
+        """
+        logging.info('data provider fields: %s' % str(list(self.__dict__.keys())))
+
     def create(self, config):
         """
         load data provider from pkl file for build it if pkl file not exist.
@@ -51,15 +71,17 @@ class BasicDataProvider(object):
         else:
             dp_file_path = get_dp_file_path(config)
         if os.path.exists(dp_file_path):
-            print('start loading data provider from %s.' % dp_file_path)
-            self.load(dp_file_path, verbose=True)
-            logging.info('loaded data provider.')
+            logging.info('loaded data provider from %s.' % dp_file_path)
+            self.load(dp_file_path)
         else:
             self.build(config)
             self.save(dp_file_path)
             logging.info('build data provider and save into %s' % dp_file_path)
 
-    def save(self, file_path, verbose=True):
+        self.summarize()
+
+    @counting_time
+    def save(self, file_path, verbose=False):
         """
         save data provider to pkl file
         :param file_path:   pkl file path
@@ -71,10 +93,12 @@ class BasicDataProvider(object):
             logging.info('trying to save provider into %s' % file_path),
         with open(file_path, 'wb') as f:
             pickle.dump(self.__dict__, f)
+            # print(list(self.__dict__.keys()))
         if verbose:
             logging.info('finish in %.2f seconds.' % (time.time()-stime))
 
-    def load(self, file_path, mode='full', verbose=True):
+    @counting_time
+    def load(self, file_path, mode='full', verbose=False):
         """
         load data provider from pkl file
         :param file_path:   data provider pkl file path
@@ -96,7 +120,7 @@ class BasicDataProvider(object):
             for key in d.keys():
                 self.__dict__[key] = d[key]
         else:
-            raise StandardError('%s mode not recognised.'%mode)
+            raise BaseException('%s mode not recognised.' % mode)
         self.prepare_data()
         if verbose:
             logging.info('finish in %.2f seconds.' % (time.time()-start))
@@ -109,3 +133,16 @@ class BasicDataProvider(object):
 
     def form_data(self, batch_data, options=None):
         return batch_data
+
+
+if __name__ == "__main__":
+    import argparse
+    from ml_idiot.config import complete_config
+    from ml_idiot.data_provider import pre_build_dp
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-f', '--config_file', dest='config_file', type=str, default='config_file_name')
+    args = parser.parse_args()
+    config = vars(args)
+    config = complete_config(config)
+    pre_build_dp(config, BasicDataProvider)
+

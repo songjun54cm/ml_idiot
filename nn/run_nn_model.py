@@ -1,5 +1,4 @@
 __author__ = 'SongJun-Dell'
-import os
 from models.msae import MSAE
 
 
@@ -31,8 +30,8 @@ def main(state):
     # create models
     model = create_model(state)
 
-    # create solver
-    from ml_idiot.solver.NeuralNetworkSolver import NeuralNetworkSolver
+    # create trainer
+    from solver.NeuralNetworkSolver import NeuralNetworkSolver
     solver = NeuralNetworkSolver(state)
 
     print 'start training...'

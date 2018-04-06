@@ -3,11 +3,11 @@ import json
 import os
 import time
 import sys
-from BasicSolver import BasicSolver
+from trainer.BasicSolver_Trainer import BasicSolver
 from ml_idiot.evaluator.RetrievalEvaluator import RetrievalEvaluator
 import cPickle as pickle
 import numpy as np
-from ml_idiot.solver.BasicSolver import log_to_file
+from ml_idiot.trainer.BasicSolver_Trainer import log_to_file
 import logging
 
 """

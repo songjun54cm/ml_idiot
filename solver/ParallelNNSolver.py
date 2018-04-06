@@ -1,7 +1,9 @@
 __author__ = 'SongJun-Dell'
 from multiprocessing import Pool
-import time, sys
-from NeuralNetworkSolver import NeuralNetworkSolver
+import time
+import sys
+
+from solver.NeuralNetworkSolver import NeuralNetworkSolver
 
 class ParallelNNSolver(NeuralNetworkSolver):
     def __init__(self, config):

@@ -1,7 +1,18 @@
 __author__ = 'SongJun-Dell'
 import time, os
 
+try:
+    import cPickle as pkl
+except ImportError:
+    import _pickle as pkl
+
+try:
+    xrange
+except NameError:
+    xrange = range
+
 path_join = os.path.join
+
 
 def update_config(config, user_config):
     for key in user_config.keys():
@@ -9,18 +20,14 @@ def update_config(config, user_config):
             config[key] = user_config[key]
     return config
 
-def get_data_folder(config):
-    return path_join(config['proj_folder'], 'data', config['data_set_name'])
 
-def get_dp_file_path(config):
-    return path_join(config['data_folder'], '%s_%s_data_provider.pkl'%(config['model_name'], config['data_set_name']))
 
 def counting_time(func):
     def _deco(*args, **kwargs):
         t0 = time.time()
         ret = func(*args, **kwargs)
         time_eclipse = time.time() - t0
-        print 'run %s finish in %.3f seconds.' % (func.__name__, time_eclipse)
+        logging.info('run %s finish in %.3f seconds.' % (func.__name__, time_eclipse))
         return ret
     return _deco
 
@@ -70,16 +77,17 @@ def get_voca_from_count(key_count, insert_list=list(), unknow=True):
 
 
 def get_data_splits(num_splits, datas_list):
+    """
+    split data into N uniform batches
+    """
     data_splits = list()
     batch_size = len(datas_list)
     step = max(int(batch_size/num_splits), 1)
-    idxs = range(0, batch_size, step)
+    idxs = list(range(0, batch_size, step))
     if batch_size % step == 0:
         idxs.append(batch_size)
     else:
         idxs[-1] = batch_size
-    # print batch_size
-    # print idxs
     for i in xrange(len(idxs)-1):
         data_splits.append(datas_list[idxs[i]:idxs[i+1]])
     return data_splits
@@ -134,12 +142,11 @@ def strdecode(sentence):
 
 
 def pickle_load(file_path, verbose=False):
-    import cPickle as pickle
     if verbose:
         print('load data from %s, ...' % file_path),
         start_time = time.time()
     with open(file_path, 'rb') as f:
-        res = pickle.load(f)
+        res = pkl.load(f)
     if verbose:
         print('finish. in %f seconds' % (time.time()-start_time))
     return res
@@ -149,9 +156,8 @@ def pickle_dump(obj, file_path, verbose=False):
     if verbose:
         print('save data to %s, ...' % file_path),
         start_time = time.time()
-    import cPickle as pickle
     with open(file_path, 'wb') as f:
-        pickle.dump(obj, f)
+        pkl.dump(obj, f)
     if verbose:
         print('finish. in %f seconds' % (time.time()-start_time))
 pk_dump = pickle_dump

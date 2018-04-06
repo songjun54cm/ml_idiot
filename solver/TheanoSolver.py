@@ -1,6 +1,5 @@
 __author__ = 'SongJun-Dell'
-import json, time
-from NeuralNetworkSolver import NeuralNetworkSolver
+from solver.NeuralNetworkSolver import NeuralNetworkSolver
 
 class TheanoSolver(NeuralNetworkSolver):
     def __init__(self, config):

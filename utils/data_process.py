@@ -10,7 +10,7 @@ def get_split_data(samples_list, rate_list, seed=0):
     :return: [ list of splits, each splits is a list of sample data ]
     """
     num_sample = len(samples_list)
-    random_idx = range(0, num_sample)
+    random_idx = list(range(0, num_sample))
     random.seed(seed)
     random.shuffle(random_idx)
     split_lens = [ int(srate * num_sample) for srate in rate_list]

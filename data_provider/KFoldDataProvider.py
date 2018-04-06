@@ -18,12 +18,11 @@ class KFoldDataProvider(NormalDataProvider):
     Attributes:
         fold_splits: K fold data splits, each fold contain same number of samples
     """
-    folds = {}
-    num_folds = 10
-
     def __init__(self, num_folds=10):
         super(KFoldDataProvider, self).__init__()
         self.num_folds = num_folds
+        self.folds = {}
+        self.num_folds = 10
 
     @abc.abstractmethod
     def load_raw_data_samples(self, config):

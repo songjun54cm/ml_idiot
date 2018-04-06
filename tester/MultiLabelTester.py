@@ -1,13 +1,17 @@
 __author__ = 'SongJun-Dell'
+import numpy as np
+import logging
+
 from ml_idiot.tester.BasicTester import BasicTester
 from ml_idiot.evaluator.MultiLabelEvaluator import MultiLabelEvaluator
-import numpy as np
+
 
 class MultiLabelTester(BasicTester):
     def __init__(self):
         super(MultiLabelTester, self).__init__()
         self.evaluator = MultiLabelEvaluator()
         self.init_tester()
+        self.top_f1 = 0
 
     def init_tester(self):
         self.top_f1 = 0
@@ -44,8 +48,8 @@ class MultiLabelTester(BasicTester):
         elif met in ['acc', 'accuracy', 'Accuracy']:
             return met, self.evaluator.accuracy(gth_state_feas, pred_state_feas)
         else:
-            print 'metric: %s' % met
-            raise StandardError('metric name error!')
+            logging.info('metric: %s' % met)
+            raise BaseException('metric name error!')
 
     def detect_to_save(self, res, model):
         # accuracy = res['Accuracy']
