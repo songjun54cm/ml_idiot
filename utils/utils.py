@@ -2,11 +2,6 @@ __author__ = 'SongJun-Dell'
 import time, os
 
 try:
-    import cPickle as pkl
-except ImportError:
-    import _pickle as pkl
-
-try:
     xrange
 except NameError:
     xrange = range
@@ -139,28 +134,6 @@ def strdecode(sentence):
             sentence = sentence.decode('gbk', 'ignore')
     return sentence
 
-
-
-def pickle_load(file_path, verbose=False):
-    if verbose:
-        print('load data from %s, ...' % file_path),
-        start_time = time.time()
-    with open(file_path, 'rb') as f:
-        res = pkl.load(f)
-    if verbose:
-        print('finish. in %f seconds' % (time.time()-start_time))
-    return res
-pk_load = pickle_load
-
-def pickle_dump(obj, file_path, verbose=False):
-    if verbose:
-        print('save data to %s, ...' % file_path),
-        start_time = time.time()
-    with open(file_path, 'wb') as f:
-        pkl.dump(obj, f)
-    if verbose:
-        print('finish. in %f seconds' % (time.time()-start_time))
-pk_dump = pickle_dump
 
 import logging
 import functools

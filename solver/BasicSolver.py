@@ -12,6 +12,7 @@ def form_name(val, suffix):
     else:
         return '%s%s' % (val, suffix)
 
+
 def create_data_provider(config, create=True):
     logging.info('create data provider: %s ...' % config['data_provider'])
     dp_cls_name = form_name(config['data_provider'], 'DataProvider')
@@ -21,6 +22,7 @@ def create_data_provider(config, create=True):
         data_provider.create(config)
     return data_provider
 
+
 def create_model(config, data_provider):
     logging.info('create model: %s ...' % config['model_name'])
     model_cls_name = form_name(config['model_name'], 'Model')
@@ -28,12 +30,14 @@ def create_model(config, data_provider):
     model = model_cls(config, data_provider)
     return model
 
+
 def create_trainer(config):
     logging.info('create trainer: %s ...' % config['trainer'])
     trainer_cls_name = form_name(config['trainer'], 'Trainer')
     trainer_cls = getattr(importlib.import_module('ml_idiot.trainer.%s' % trainer_cls_name), trainer_cls_name)
     trainer = trainer_cls(config)
     return trainer
+
 
 def create_tester(config):
     logging.info('create tester: %s ...' % config['tester'])

@@ -2,6 +2,8 @@ __author__ = 'JunSong<songjun54cm@gmail.com>'
 from keras.models import Model
 from keras import optimizers
 import keras.backend as K
+import logging
+
 
 def get_optimizer(config):
     if(config['optimizer'] == 'rmsprop'):
@@ -19,7 +21,7 @@ def get_optimizer(config):
                               decay=config['learning_rate_decay'])
         return opti
     else:
-        raise StandardError('optimizer name error')
+        raise KeyError('optimizer name error')
 
 
 class KerasModel(Model):
@@ -84,7 +86,7 @@ class KerasModel(Model):
                                             **self._function_kwargs)
 
     def build_model(self, config):
-        print self.summary()
+        logging.info(self.summary())
         self.optimizer = get_optimizer(config)
         self.compile(optimizer=self.optimizer,
                      loss=config['loss'],

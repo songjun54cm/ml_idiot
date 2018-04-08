@@ -1,6 +1,6 @@
 __author__ = 'SongJun-Dell'
 import logging
-import _pickle as pkl
+from utils.save_load import pkl_dump, pkl_load, save_dict, load_dict
 import abc
 
 class BasicModel(object):
@@ -26,12 +26,20 @@ class BasicModel(object):
 
     def save(self, file_path):
         logging.info('trying to save model into %s' % file_path)
-        with open(file_path, 'wb') as f:
-            pkl.dump(self.__dict__, f)
+        pkl_dump(self.__dict__, file_path)
 
     def load(self, file_path):
-        with open(file_path, 'rb') as f:
-            d = pkl.load(f)
+        d = pkl_load(file_path)
         # self.splits = d['splits']
         for key in self.__dict__.keys():
             self.__dict__[key] = d[key]
+
+    def save_to_dir(self, target_path):
+        logging.info('trying to save model into %s' % target_path)
+        save_dict(self.__dict__, target_path)
+
+    def load_to_dir(self, source_path):
+        dict_data = load_dict(source_path)
+        for key in self.__dict__.keys():
+            self.__dict__[key] = dict_data[key]
+

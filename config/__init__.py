@@ -1,5 +1,5 @@
 __author__ = 'SongJun-Dell'
-from settings import proj_folder
+from settings import PROJECT_HOME
 from ml_idiot.utils.utils import path_join
 
 def get_data_folder(config):
@@ -7,7 +7,7 @@ def get_data_folder(config):
 
 
 def complete_config(config):
-    config['proj_folder'] = proj_folder
+    config['proj_folder'] = PROJECT_HOME
     config['data_folder'] = get_data_folder(config)
     config['mode'] = config.get('mode', 'train')
     config['loss_scale'] = config.get('loss_scale', 1.0)
