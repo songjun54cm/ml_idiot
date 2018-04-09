@@ -33,9 +33,9 @@ def create_model(config):
 
 
 def create_trainer(config):
-    logging.info('create trainer: %s ...' % config['trainer'])
-    trainer_cls_name = form_name(config['trainer'], 'Trainer')
-    trainer_cls = getattr(importlib.import_module('ml_idiot.trainer.%s' % trainer_cls_name), trainer_cls_name)
+    logging.info('create trainers: %s ...' % config['trainers'])
+    trainer_cls_name = form_name(config['trainers'], 'Trainer')
+    trainer_cls = getattr(importlib.import_module('ml_idiot.trainers.%s' % trainer_cls_name), trainer_cls_name)
     trainer = trainer_cls(config)
     return trainer
 

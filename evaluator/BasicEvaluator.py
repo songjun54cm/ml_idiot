@@ -13,7 +13,10 @@ class BasicEvaluator(object):
             self.metrics = list(self.metric_func_mapping.keys())
         else:
             self.metrics = metrics
-    @abc.abstractmethod
+
+    def evaluate_prepare(self):
+        pass
+
     def evaluate(self, gth_vals, pred_vals, metrics=None):
         """
         evaluate predict results.
@@ -21,6 +24,7 @@ class BasicEvaluator(object):
         :param pred_vals:   predicted values
         :return:    metrics = {metric_name: metric_value}
         """
+        self.evaluate_prepare()
         if metrics is None:
             metrics = self.metrics
         metric_res = {}

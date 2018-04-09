@@ -3,7 +3,7 @@ import json
 import os
 import time
 import sys
-from trainer.BasicSolver_Trainer import BasicSolver
+from trainers.BasicSolver_Trainer import BasicSolver
 from ml_idiot.evaluator.RetrievalEvaluator import RetrievalEvaluator
 import cPickle as pickle
 import numpy as np

@@ -30,7 +30,7 @@ def main(state):
     # create models
     model = create_model(state)
 
-    # create trainer
+    # create trainers
     from solver.NeuralNetworkSolver import NeuralNetworkSolver
     solver = NeuralNetworkSolver(state)
 
