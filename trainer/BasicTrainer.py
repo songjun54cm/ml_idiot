@@ -19,24 +19,23 @@ def log_to_file(message, file_name, folder_path):
 
 
 class BasicTrainer(object):
-    config = {}
-    optimizer = None
-    tester = None
-    smooth_train_loss = float('inf')
-    train_log_file = None
-    train_log_csv_file = None
-    valid_log_file = None
-    valid_log_csv_file = None
-    last_save_model_file_path = None
-    top_performance_csv_message = None
-    metrics = []
-    top_metric = 0
-    top_metric_name = ""
-    top_performance_valid_res = None
-
     def __init__(self, config):
         super(BasicTrainer, self).__init__()
         self.config = config
+        self.loss_scale = config['loss_scale']
+        self.optimizer = None
+        self.tester = None
+        self.smooth_train_loss = float('inf')
+        self.train_log_file = None
+        self.train_log_csv_file = None
+        self.valid_log_file = None
+        self.valid_log_csv_file = None
+        self.last_save_model_file_path = None
+        self.top_performance_csv_message = None
+        self.metrics = []
+        self.top_metric = 0
+        self.top_metric_name = ""
+        self.top_performance_valid_res = None
 
     @abc.abstractmethod
     def train(self, model, data_provider, tester):
@@ -141,7 +140,7 @@ class BasicTrainer(object):
             self.log_train_message(message)
             return False
         # self.smooth_train_cost = loss
-        return
+        return True
 
     def create_checkpoint_dir(self):
         """
@@ -183,8 +182,14 @@ class BasicTrainer(object):
         cp_sufix = '%s_%.6f.%s' % (self.top_metric_name, metric_score, model.save_ext)
         return save_tag, cp_sufix
 
-    def to_validate(self, epoch_i):
-        return (self.valid_sample_count >= self.valid_sample_num) or \
+    def to_validate(self, epoch_i, mode='num_epoch'):
+        if mode == 'num_epoch':
+            if epoch_i % self.valid_epoch_stride == 0:
+                return True
+            else:
+                return False
+        else:
+            return (self.valid_sample_count >= self.valid_sample_num) or \
                (epoch_i>=self.max_epoch-1 and self.sample_count>=self.train_size)
 
     def form_valid_message(self, res):

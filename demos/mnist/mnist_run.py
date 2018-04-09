@@ -23,6 +23,6 @@ if __name__ == "__main__":
     args = parser.parse_args()
     config = vars(args)
     if config['config_file'] is None:
-        raise BaseException('config file not assigned.')
+        config['config_file'] = '%s_%s_config' % (config['data_set_name'], config['model_name'])
     config.update(getattr(importlib.import_module('configs.%s' % config['config_file']), 'config'))
     main(config)

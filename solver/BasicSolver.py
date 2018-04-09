@@ -23,11 +23,12 @@ def create_data_provider(config, create=True):
     return data_provider
 
 
-def create_model(config, data_provider):
+def create_model(config):
     logging.info('create model: %s ...' % config['model_name'])
     model_cls_name = form_name(config['model_name'], 'Model')
     model_cls = getattr(importlib.import_module('models.%s' % model_cls_name), model_cls_name)
-    model = model_cls(config, data_provider)
+    model = model_cls()
+    model.create(config['model_config'])
     return model
 
 
@@ -58,7 +59,7 @@ class BasicSolver(object):
         super(BasicSolver, self).__init__()
         self.config = complete_config(config)
         self.data_provider = create_data_provider(config)
-        self.model = create_model(config, self.data_provider)
+        self.model = create_model(config)
         self.trainer = create_trainer(config)
         self.tester = create_tester(config)
 

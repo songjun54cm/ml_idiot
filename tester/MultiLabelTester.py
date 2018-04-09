@@ -7,8 +7,8 @@ from ml_idiot.evaluator.MultiLabelEvaluator import MultiLabelEvaluator
 
 
 class MultiLabelTester(BasicTester):
-    def __init__(self):
-        super(MultiLabelTester, self).__init__()
+    def __init__(self, config):
+        super(MultiLabelTester, self).__init__(config)
         self.evaluator = MultiLabelEvaluator()
         self.init_tester()
         self.top_f1 = 0
@@ -17,8 +17,19 @@ class MultiLabelTester(BasicTester):
         self.top_f1 = 0
 
     def test_batch(self, model, batch_data):
-        gth_feas = [data['target_feas'] for data in batch_data]
-        preds = model.predict_batch(batch_data)
+        gth_vals = batch_data['gth_vals']
+        pred_vals, batch_loss = model.predict_batch(batch_data, with_loss=True)
+        res = {
+            'loss': batch_loss,
+            'sample_num': batch_data['sample_num'],
+            'gth_vals': gth_vals,
+            'pred_vals': pred_vals,
+        }
+        return res
+
+    def test_multiple_samples(self, model, sample_datas):
+        gth_feas = [data['target_feas'] for data in sample_datas]
+        preds = model.predict_multiple_samples(sample_datas)
         losses = list()
         for gfea, pfea in zip(gth_feas, preds):
             losses.append(model.loss_one_sample(gfea, pfea))
@@ -26,7 +37,7 @@ class MultiLabelTester(BasicTester):
 
         res = {
             'loss': loss,
-            'sample_num': len(batch_data),
+            'sample_num': len(sample_datas),
             'gth_feas': np.concatenate(gth_feas),
             'pred_feas': np.concatenate(preds) if type(preds) is list else preds
         }

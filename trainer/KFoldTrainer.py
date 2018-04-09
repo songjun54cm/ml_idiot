@@ -8,7 +8,7 @@ class KFoldTrainer(BasicTrainer):
     def __init__(self, config):
         super(KFoldTrainer, self).__init__(config)
 
-    def train(self, model, data_provider):
+    def train(self, model, data_provider, tester):
         self.create_out_folder()
         self.config['exp_out_folder'] = self.config['out_folder']
         k = len(data_provider.fold_splits)

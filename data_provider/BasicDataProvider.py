@@ -60,7 +60,7 @@ class BasicDataProvider(object):
 
     def create(self, config):
         """
-        load data provider from pkl file for build it if pkl file not exist.
+        load data provider from pkl file or build it if pkl file not exist.
         :param config:  configurations
         :return: None
         """

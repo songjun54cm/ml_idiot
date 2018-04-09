@@ -1,6 +1,8 @@
 __author__ = 'JunSong<songjun54cm@gmail.com>'
-from BasicTester import BasicTester
+from ml_idiot.tester.BasicTester import BasicTester
 from ml_idiot.evaluator.CategoricalEvaluator import CategoricalEvaluator
+
+
 class CategoricalTester(BasicTester):
     def __init__(self):
         super(CategoricalTester, self).__init__()
@@ -17,5 +19,5 @@ class CategoricalTester(BasicTester):
         if met in ['categorical_accuracy']:
             return met, self.evaluator.categorical_accuracy(gth_state_feas, pred_state_feas)
         else:
-            print 'metric: %s' % met
-            raise StandardError('metric name error!')
+            logging.info('metric: %s' % met)
+            raise KeyError('metric name error!')

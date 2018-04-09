@@ -2,6 +2,7 @@ __author__ = 'SongJun-Dell'
 from collections import OrderedDict
 from ml_idiot.evaluator.MultiLabelEvaluator import MultiLabelEvaluator
 import numpy as np
+import logging
 
 class HMMTester(object):
     def __init__(self):
@@ -13,7 +14,7 @@ class HMMTester(object):
         gth_states = list()
         pred_states = list()
 
-        for si in xrange(len(obs_seqs)):
+        for si in range(len(obs_seqs)):
             obss = obs_seqs[si]
             states = state_seqs[si]
             pred_ss = model.predict_states(obss, states)
@@ -56,5 +57,5 @@ class HMMTester(object):
         elif met == 'accuracy':
             return 'Accuracy', self.evaluator.accuracy(gth_state_feas, pred_state_feas)
         else:
-            print 'metric: %s' % met
-            raise StandardError('metric name error!')
+            logging.info('metric: %s' % met)
+            raise KeyError('metric name error!')

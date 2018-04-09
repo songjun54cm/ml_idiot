@@ -15,7 +15,12 @@ class NormalDataProvider(BasicDataProvider):
     """
     def __init__(self):
         super(NormalDataProvider, self).__init__()
-        self.splits = dict()
+        self.splits = {
+            'train': None,
+            'valid': None,
+            'test': None,
+            'train_valid': None
+        }
         self.split_ratios = []
         self.valid_batch_size = None
 
