@@ -16,7 +16,7 @@ def form_name(val, suffix):
 def create_data_provider(config, create=True):
     logging.info('create data provider: %s ...' % config['data_provider'])
     dp_cls_name = form_name(config['data_provider'], 'DataProvider')
-    dp_cls = getattr(importlib.import_module('data_providers.%s'%dp_cls_name), dp_cls_name)
+    dp_cls = getattr(importlib.import_module('data_providers.%s' % dp_cls_name), dp_cls_name)
     data_provider = dp_cls()
     if create:
         data_provider.create(config)
