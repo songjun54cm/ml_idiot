@@ -2,6 +2,7 @@
 *.mat
 *.pyc
 *.txt
+*.iml
 !*result.txt
 ~*
 *.pkl

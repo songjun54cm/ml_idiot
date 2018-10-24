@@ -1,6 +1,7 @@
 __author__ = 'JunSong<songjun54cm@gmail.com>'
 import argparse
 import random
+import logging
 
 def get_split_data(samples_list, rate_list, seed=0):
     """
@@ -14,6 +15,7 @@ def get_split_data(samples_list, rate_list, seed=0):
     random.seed(seed)
     random.shuffle(random_idx)
     split_lens = [ int(srate * num_sample) for srate in rate_list]
+    logging.info("lengths of splitss: " + str(split_lens))
     split_idxes = list()
     split_data_list = list()
     spos = 0
