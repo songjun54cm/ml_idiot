@@ -12,5 +12,8 @@ def complete_config(config):
     config['mode'] = config.get('mode', 'train')
     config['loss_scale'] = config.get('loss_scale', 1.0)
     config['data_provider'] = config.get('data_provider', '%sDataProvider' % config['data_set_name'])
+    config["trainer"] = config.get("trainer", "%sTrainer" % config["model_name"])
+    config["tester"] = config.get("tester", "%sTester" % config["model_name"])
+    config["evaluator"] = config.get("evaluator", "%sEvaluator" % config["model_name"])
     return config
 
