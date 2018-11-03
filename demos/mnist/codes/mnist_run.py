@@ -19,10 +19,12 @@ def main(config):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
+    parser.add_argument('-d', '--data', dest='data_set_name', type=str, default='MNIST')
+    parser.add_argument('-m', '--model', dest='model_name', type=str, default='CNN')
     parser.add_argument('-f', '--file', dest='config_file', type=str, default=None)
     args = parser.parse_args()
     config = vars(args)
     if config['config_file'] is None:
-        config['config_file'] = '%s_%s_config' % (config['data_set_name'], config['model_name'])
+        config['config_file'] = '%s_%s_Config' % (config['data_set_name'], config['model_mane'])
     config.update(getattr(importlib.import_module('configures.%s' % config['config_file']), 'config'))
     main(config)
