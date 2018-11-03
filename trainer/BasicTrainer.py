@@ -22,7 +22,7 @@ class BasicTrainer(object):
     def __init__(self, config):
         super(BasicTrainer, self).__init__()
         self.config = config
-        self.loss_scale = config['loss_scale']
+        self.loss_scale = config.get('loss_scale', 1.0)
         self.optimizer = None
         self.tester = None
         self.smooth_train_loss = float('inf')
@@ -31,6 +31,7 @@ class BasicTrainer(object):
         self.valid_log_file = None
         self.valid_log_csv_file = None
         self.last_save_model_file_path = None
+        self.top_performance_message = None
         self.top_performance_csv_message = None
         self.metrics = []
         self.top_metric = 0
@@ -95,6 +96,7 @@ class BasicTrainer(object):
             self.valid_log_csv_file = open(self.config['valid_log_csv_file'], 'a')
 
     def log_message(self, message, file_name=None):
+        if message is None: return
         logging.info(message)
         if message[-1] != '\n': message += '\n'
         self.log_train_message(message)
@@ -103,6 +105,7 @@ class BasicTrainer(object):
             log_to_file(message, file_name, self.config['out_folder'])
 
     def log_train_message(self, message, file_name=None):
+        if message is None: return
         logging.info('\n'+message)
         if message[-1] != '\n': message += '\n'
         if self.train_log_file is not None:
@@ -120,6 +123,7 @@ class BasicTrainer(object):
             self.train_log_csv_file.flush()
 
     def log_valid_message(self, message):
+        if message is None: return
         logging.info('\n'+message)
         message = add_new_line(message)
         if self.valid_log_file is not None:
@@ -127,6 +131,7 @@ class BasicTrainer(object):
             self.valid_log_file.flush()
 
     def log_valid_csv_message(self, message, file_name=None):
+        if message is None: return
         csv_message = add_new_line(message)
         if self.valid_log_csv_file is not None:
             self.valid_log_csv_file.write(csv_message)

@@ -8,12 +8,16 @@ from ml_idiot.evaluator.BasicEvaluator import BasicEvaluator
 from ml_idiot.data_provider.BasicDataProvider import get_batch_size
 from ml_idiot.solver.BasicSolver import form_name
 
+
 def create_evaluator(config):
     logging.info('create evaluator: %s ...' % config['evaluator'])
     eval_cls_name = form_name(config['evaluator'], 'Evaluator')
-    eval_cls = getattr(importlib.import_module('ml_idiot.evaluator.%s' % eval_cls_name), eval_cls_name)
+    eval_cls = getattr(importlib.import_module('evaluators.%s' % eval_cls_name), eval_cls_name)
+    metrics = config.get("metrics", None)
     eval = eval_cls()
+    eval.init_metric(metrics)
     return eval
+
 
 class BasicTester(object):
     """
@@ -46,7 +50,7 @@ class BasicTester(object):
         results['sample_num'] = res['sample_num']
         results['seconds'] = time_eclipse
         results['split'] = split
-        results['loss'] = res['loss']*self.config['loss_scale']
+        results['loss'] = res['loss']*self.config.get('loss_scale', 1.0)
         return results
 
     def valid_split_metrics(self, model, data_provider, split):
@@ -97,24 +101,3 @@ class BasicTester(object):
             'pred_vals': pred_vals
         }
         return res
-
-    # def get_metrics(self, res, metrics):
-    #     metric_res = OrderedDict()
-    #     if type(metrics) == list:
-    #         for met in metrics:
-    #             met_str, met_value = self.get_metric_value(res, met)
-    #             metric_res[met_str] = met_value
-    #     else:
-    #         met_str, met_value = self.get_metric_value(res, metrics)
-    #         metric_res[met_str] = met_value
-    #     return metric_res
-    #
-    # need to be implemented
-    # def init_tester(self):
-    #     raise NotImplementedError('init tester not implemented')
-    #
-    # def test_batch(self, model, data_batch):
-    #     raise NotImplementedError('test batch not implemented.')
-    #
-    # def get_metric_value(self, res, metrics):
-    #     raise NotImplementedError('get_metrics not implemented.')

@@ -1,6 +1,8 @@
 __author__ = 'JunSong<songjun54cm@gmail.com>'
 from BasicEvaluator import BasicEvaluator
 import numpy as np
+
+
 class CategoricalEvaluator(BasicEvaluator):
     def __init__(self):
         super(CategoricalEvaluator, self).__init__()

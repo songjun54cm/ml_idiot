@@ -1,6 +1,7 @@
 __author__ = 'SongJun-Dell'
 from settings import ProjectHome
 from ml_idiot.utils.utils import path_join
+import importlib
 
 def get_data_folder(config):
     return path_join(config['proj_folder'], 'data', config['data_set_name'])

@@ -3,6 +3,7 @@ import logging
 from utils.save_load import pkl_dump, pkl_load, save_dict, load_dict
 import abc
 
+
 class BasicModel(object):
     def __init__(self, config):
         self.save_ext = 'pkl'

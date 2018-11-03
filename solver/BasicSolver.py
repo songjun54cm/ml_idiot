@@ -2,8 +2,8 @@ __author__ = 'JunSong<songjun54cm@gmail.com>'
 import importlib
 import json
 import logging
+from ml_idiot.utils.utils import update_config
 
-from ml_idiot.config import complete_config
 
 
 def form_name(val, suffix):
@@ -27,15 +27,15 @@ def create_model(config):
     logging.info('create model: %s ...' % config['model_name'])
     model_cls_name = form_name(config['model_name'], 'Model')
     model_cls = getattr(importlib.import_module('models.%s' % model_cls_name), model_cls_name)
-    model = model_cls()
+    model = model_cls(config)
     model.create(config['model_config'])
     return model
 
 
 def create_trainer(config):
-    logging.info('create trainers: %s ...' % config['trainers'])
-    trainer_cls_name = form_name(config['trainers'], 'Trainer')
-    trainer_cls = getattr(importlib.import_module('ml_idiot.trainers.%s' % trainer_cls_name), trainer_cls_name)
+    logging.info('create trainer: %s ...' % config['trainer'])
+    trainer_cls_name = form_name(config['trainer'], 'Trainer')
+    trainer_cls = getattr(importlib.import_module('trainers.%s' % trainer_cls_name), trainer_cls_name)
     trainer = trainer_cls(config)
     return trainer
 
@@ -43,9 +43,17 @@ def create_trainer(config):
 def create_tester(config):
     logging.info('create tester: %s ...' % config['tester'])
     tester_cls_name = form_name(config['tester'], 'Tester')
-    tester_cls = getattr(importlib.import_module('ml_idiot.tester.%s' % tester_cls_name), tester_cls_name)
+    tester_cls = getattr(importlib.import_module('testers.%s' % tester_cls_name), tester_cls_name)
     tester = tester_cls(config)
     return tester
+
+
+def init_config(user_config):
+    print('init config...')
+    config = getattr(importlib.import_module('configures.%sConfig'%user_config['model_name']),
+                     user_config['data_set_name'])
+    config = update_config(config, user_config)
+    return config
 
 
 class BasicSolver(object):
@@ -57,11 +65,11 @@ class BasicSolver(object):
 
     def __init__(self, config):
         super(BasicSolver, self).__init__()
-        self.config = complete_config(config)
-        self.data_provider = create_data_provider(config)
-        self.model = create_model(config)
-        self.trainer = create_trainer(config)
-        self.tester = create_tester(config)
+        self.config = init_config(config)
+        self.data_provider = create_data_provider(self.config)
+        self.model = create_model(self.config)
+        self.trainer = create_trainer(self.config)
+        self.tester = create_tester(self.config)
 
     def run(self):
         if self.config['mode'] in ['train', 'debug']:
