@@ -4,15 +4,18 @@ import abc
 
 
 class BasicEvaluator(object):
-    def __init__(self, metrics=None):
+    def __init__(self, config=None):
         self.metric_func_mapping = {}
-        self.metrics = None
+        self.metrics = config.get("metrics", None)
+        self.top_metric = None
 
-    def init_metric(self, metrics):
-        if metrics is None:
+    def get_metrics(self):
+        if self.metrics is None:
             self.metrics = list(self.metric_func_mapping.keys())
-        else:
-            self.metrics = metrics
+        return self.metrics
+
+    def get_top_metric(self):
+        return self.top_metric
 
     def evaluate_prepare(self):
         pass
@@ -26,7 +29,7 @@ class BasicEvaluator(object):
         """
         self.evaluate_prepare()
         if metrics is None:
-            metrics = self.metrics
+            metrics = self.get_metrics()
         metric_res = {}
         for met_name in metrics:
             metric_res[met_name] = self.metric_func_mapping[met_name](gth_vals, pred_vals)

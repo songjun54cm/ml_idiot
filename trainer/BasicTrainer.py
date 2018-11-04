@@ -33,10 +33,18 @@ class BasicTrainer(object):
         self.last_save_model_file_path = None
         self.top_performance_message = None
         self.top_performance_csv_message = None
-        self.metrics = []
-        self.top_metric = 0
-        self.top_metric_name = ""
+        self.metrics = config.get("metrics")
+        self.top_metric = 0.0
+        self.top_metric_name = config.get("top_metric")
         self.top_performance_valid_res = None
+
+        self.valid_sample_count = 0
+        self.valid_iter = config.get("valid_iter", None)
+        self.valid_sample_num = None
+
+    def prepare_trainer(self, tester):
+        if self.top_metric_name is None:
+            self.top_metric_name = tester.get_top_metric()
 
     @abc.abstractmethod
     def train(self, model, data_provider, tester):
@@ -186,16 +194,6 @@ class BasicTrainer(object):
         # cp_sufix = 'accuracy_%.3f_tt_%.3f_.pkl' % (accuracy, truetrue)
         cp_sufix = '%s_%.6f.%s' % (self.top_metric_name, metric_score, model.save_ext)
         return save_tag, cp_sufix
-
-    def to_validate(self, epoch_i, mode='num_epoch'):
-        if mode == 'num_epoch':
-            if epoch_i % self.valid_epoch_stride == 0:
-                return True
-            else:
-                return False
-        else:
-            return (self.valid_sample_count >= self.valid_sample_num) or \
-               (epoch_i>=self.max_epoch-1 and self.sample_count>=self.train_size)
 
     def form_valid_message(self, res):
         def from_split_valid_message(split_res):

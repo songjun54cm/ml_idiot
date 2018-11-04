@@ -13,9 +13,7 @@ def create_evaluator(config):
     logging.info('create evaluator: %s ...' % config['evaluator'])
     eval_cls_name = form_name(config['evaluator'], 'Evaluator')
     eval_cls = getattr(importlib.import_module('evaluators.%s' % eval_cls_name), eval_cls_name)
-    metrics = config.get("metrics", None)
-    eval = eval_cls()
-    eval.init_metric(metrics)
+    eval = eval_cls(config)
     return eval
 
 
@@ -27,6 +25,9 @@ class BasicTester(object):
     def __init__(self, config):
         self.config = config
         self.evaluator = create_evaluator(config)
+
+    def get_top_metric(self):
+        return self.evaluator.get_top_metric()
 
     def test(self, model, data_provider, split=None):
         if split is None:

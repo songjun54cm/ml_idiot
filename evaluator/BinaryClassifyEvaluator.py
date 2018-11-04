@@ -6,9 +6,10 @@ from ml_idiot.evaluator import EvaluatorMetrics
 
 
 class BinaryClassifyEvaluator(BasicEvaluator):
-    def __init__(self, metrics=None):
-        super(BinaryClassifyEvaluator, self).__init__()
+    def __init__(self, config=None):
+        super(BinaryClassifyEvaluator, self).__init__(config)
         self.metric_func_mapping = {
             "accuracy": EvaluatorMetrics.classify_accuracy,
             "auc": EvaluatorMetrics.auc
         }
+        self.top_metric = config.get("top_metric", "auc")

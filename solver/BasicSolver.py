@@ -50,10 +50,15 @@ def create_tester(config):
 
 def init_config(user_config):
     print('init config...')
-    config = getattr(importlib.import_module('configures.%sConfig'%user_config['model_name']),
-                     user_config['data_set_name'])
-    config = update_config(config, user_config)
-    return config
+    if user_config['config_file'] is None:
+        user_config['config_file'] = '%s_%s_config' % (user_config['data_set_name'], user_config['model_name'])
+    user_config.update(getattr(importlib.import_module('configs.%s' % user_config['config_file']), 'config'))
+    user_config["data_provider"] = user_config.get("data_provider", "%sDataProvider" % user_config["model_name"])
+    user_config["trainer"] = user_config.get("trainer", "%sTrainer" % user_config["model_name"])
+    user_config["tester"] = user_config.get("tester", "%sTester" % user_config["model_name"])
+    user_config["evaluator"] = user_config.get("evaluator", "%sEvaluator" % user_config["model_name"])
+    user_config["mode"] = user_config.get("mode", "train")
+    return user_config
 
 
 class BasicSolver(object):
@@ -70,6 +75,10 @@ class BasicSolver(object):
         self.model = create_model(self.config)
         self.trainer = create_trainer(self.config)
         self.tester = create_tester(self.config)
+        self.prepare_solver()
+
+    def prepare_solver(self):
+        self.trainer.prepare_trainer(self.tester)
 
     def run(self):
         if self.config['mode'] in ['train', 'debug']:

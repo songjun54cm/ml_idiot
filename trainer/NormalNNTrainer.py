@@ -14,35 +14,39 @@ class NormalNNTrainer(NormalTrainer):
         self.train_size = None
         self.sample_count = 0
         self.smooth_rate = None
-        self.valid_sample_count = 0
         self.to_valid_mode = config.get('to_valid_mode', 'num_epoch') # mode: num_epoch/num_iter/num_sample
-        if self.to_valid_mode == 'num_epoch':
-            self.valid_epoch_stride = config.get('valid_epoch_stride', 1)
+        self.valid_epoch_stride = config.get('valid_epoch_stride', 1)
+
+
+
+    def setup_train_state(self, data_provider):
+        self.train_size = data_provider.split_size('train')
+        v_num1 = int(self.train_size * self.valid_epoch_stride) if self.valid_epoch_stride is not None else self.train_size
+        v_num2 = int(self.batch_size * self.valid_iter) if self.valid_iter is not None else self.train_size
+        self.valid_sample_num = min(v_num1, v_num2)
+        logging.info('valid sample number: %d' % self.valid_sample_num)
 
     def train_model(self, model, data_provider, tester):
+        if (self.valid_sample_num is None):
+            self.setup_train_state(data_provider)
         self.train_size = data_provider.split_size('train')
         for epoch_i in range(self.max_epoch):
             for batch_data in data_provider.iter_train_batches(self.batch_size):
                 self.train_one_batch(model, batch_data, epoch_i)
                 batch_loss, score_loss, regu_loss = model.train_batch(batch_data)
-                # logging.info('Epoch %d/%d, Batch Loss: %f, Score Loss %f, Regu Loss %f' %
+                logging.info('Epoch %d/%d, Batch Loss: %f, Score Loss %f, Regu Loss %f' %
+                             (epoch_i, self.max_epoch, batch_loss, score_loss, regu_loss) )
                 # validation
-                if self.to_validate(epoch_i, self.to_valid_mode):
+                if self.to_validate(epoch_i):
                     # self.valid_sample_count = 0
                     train_res, valid_res, test_res, valid_csv_message = self.valid_model(model, data_provider, epoch_i)
                     validate_res = {'train': train_res, 'valid': valid_res, 'test': test_res}
 
                     self.save_or_not(valid_res, model, valid_csv_message, validate_res)
 
-            test_model(model, data_provider)
-            if i % 10 == 0:
-                output_dir = os.path.join(DataHome, 'output', config['model_name'], config['data_set_name'],
-                                          'checkpoint_epoch_%d' % i)
-                if not os.path.exists(output_dir):
-                    os.makedirs(output_dir)
-                save_path = os.path.join(output_dir, 'model')
-                logging.info('save model into %s' % save_path)
-                model.save_model(save_path)
+    def to_validate(self, epoch_i):
+        return (self.valid_sample_count >= self.valid_sample_num) or \
+           (epoch_i>=self.max_epoch-1 and self.sample_count>=self.train_size)
 
     def valid_prepare(self, model, data_provider):
         # over driver if needed.
