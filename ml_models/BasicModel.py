@@ -1,6 +1,6 @@
 __author__ = 'SongJun-Dell'
 import logging
-from utils.save_load import pkl_dump, pkl_load, save_dict, load_dict
+from ml_idiot.utils.save_load import pkl_dump, pkl_load, save_dict, load_dict
 import abc
 
 
