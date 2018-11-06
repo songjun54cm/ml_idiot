@@ -78,7 +78,7 @@ class BasicSolver(object):
         self.prepare_solver()
 
     def prepare_solver(self):
-        self.trainer.prepare_trainer(self.tester, self.data_provider)
+        self.trainer.prepare_trainer(self)
 
     def run(self):
         if self.config['mode'] in ['train', 'debug']:

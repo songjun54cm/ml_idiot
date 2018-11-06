@@ -1,13 +1,28 @@
 __author__ = 'SongJun-Dell'
+import importlib
 import logging
 import time
 import numpy as np
 from ml_idiot.trainer.NormalTrainer import NormalTrainer
 
 
+def create_optimizer(config):
+    opt = config.get("optimizer", "sgd")
+    logging.info("create optimizer: %s ..." % opt)
+    opt_cls = getattr(importlib.import_module("ml_idiot.optimizer"), opt)
+    opter = opt_cls(config)
+    return opter
+
+
 class NormalNNTrainer(NormalTrainer):
     def __init__(self, config):
         super(NormalNNTrainer, self).__init__(config)
+        self.optimizer = create_optimizer(config)
+        self.smooth_train_loss = float('inf')
+        self.top_metric = 0.0
+        self.valid_sample_count = 0
+        self.valid_iter = config.get("valid_iter", None)
+        self.valid_sample_num = None
         self.iter_count = 0
         self.max_epoch = config['max_epoch']
         self.batch_size = config['batch_size']
@@ -17,19 +32,17 @@ class NormalNNTrainer(NormalTrainer):
         self.to_valid_mode = config.get('to_valid_mode', 'num_epoch') # mode: num_epoch/num_iter/num_sample
         self.valid_epoch_stride = config.get('valid_epoch_stride', 1)
 
-    def setup_train_state(self, data_provider):
-        if self.valid_sample_num is None:
-            self.train_size = data_provider.split_size('train')
-            self.batch_size = self.config.get("batch_size", self.train_size)
-            v_num1 = int(self.train_size * self.valid_epoch_stride) if self.valid_epoch_stride is not None else self.train_size
-            v_num2 = int(self.batch_size * self.valid_iter) if self.valid_iter is not None else self.train_size
-            self.valid_sample_num = min(v_num1, v_num2)
-            logging.info('valid sample number: %d' % self.valid_sample_num)
-        else:
-            pass
+    def prepare_trainer(self, solver):
+        super(NormalNNTrainer, self).prepare_trainer(solver)
+        data_provider = solver.data_provider
+        self.train_size = data_provider.split_size('train')
+        self.batch_size = self.config.get("batch_size", self.train_size)
+        v_num1 = int(self.train_size * self.valid_epoch_stride) if self.valid_epoch_stride is not None else self.train_size
+        v_num2 = int(self.batch_size * self.valid_iter) if self.valid_iter is not None else self.train_size
+        self.valid_sample_num = min(v_num1, v_num2)
+        self.log_train_message('valid sample number: %d' % self.valid_sample_num)
 
     def train_model(self, model, data_provider, tester):
-        self.setup_train_state(data_provider)
         self.train_size = data_provider.split_size('train')
         for epoch_i in range(self.max_epoch):
             for batch_data in data_provider.iter_train_batches(self.batch_size):
@@ -55,7 +68,7 @@ class NormalNNTrainer(NormalTrainer):
         self.iter_count += 1
         t0 = time.time()
 
-        batch_loss, score_loss, regu_loss = model.train_batch(batch_data['batch_feature'])
+        batch_loss, score_loss, regu_loss = model.train_batch(batch_data)
 
         batch_loss *= self.loss_scale
         self.valid_sample_count += batch_size
@@ -87,31 +100,31 @@ class NormalNNTrainer(NormalTrainer):
 
     def valid_model(self, model, data_provider, epoch_i):
         valid_csv_message = 'epoch_num,%d\n' % epoch_i
-        valid_csv_message += self.form_valid_csv(mode='head') + '\n'
         # validate on the train valid data set
         train_res = self.validate_on_split(model, data_provider, split='train_valid')
-        valid_csv_message += self.form_valid_csv(mode='body', res=train_res) + '\n'
+        valid_csv_message += self.form_valid_csv_message(mode='head') + '\n'
+        valid_csv_message += self.form_valid_csv_message(res=train_res, mode='body') + '\n'
         # validate on the validate data set
         valid_res = self.validate_on_split(model, data_provider, split='valid')
-        valid_csv_message += self.form_valid_csv(mode='body', res=valid_res) + '\n'
+        valid_csv_message += self.form_valid_csv_message(res=valid_res, mode='body') + '\n'
         # validate on the test data set
         test_res = self.validate_on_split(model, data_provider, split='test')
-        valid_csv_message += self.form_valid_csv(mode='body', res=test_res) + '\n'
+        valid_csv_message += self.form_valid_csv_message(res=test_res, mode='body') + '\n'
         self.log_valid_csv_message(valid_csv_message)
         self.log_valid_csv_message('\n')
         return train_res, valid_res, test_res, valid_csv_message
 
-    def form_valid_csv(self, mode, res=None):
-        if mode == 'head':
-            head_message = 'sample_num,seconds,split,Loss,'+','.join(self.metrics)
-            return head_message
-        elif mode == 'body':
-            body_message = '%d,%.3f,%s,%f' % (res['sample_num'], res['seconds'], res['split'], res['loss'])
-            for met in self.metrics:
-                body_message += ',%f' % res['metrics'][met]
-            return body_message
-        else:
-            raise BaseException('form_valid_csv mode error.')
+    # def form_valid_csv(self, mode, res=None):
+    #     if mode == 'head':
+    #         head_message = 'sample_num,seconds,split,Loss,'+','.join(self.metrics)
+    #         return head_message
+    #     elif mode == 'body':
+    #         body_message = '%d,%.3f,%s,%f' % (res['sample_num'], res['seconds'], res['split'], res['loss'])
+    #         for met in self.metrics:
+    #             body_message += ',%f' % res['metrics'][met]
+    #         return body_message
+    #     else:
+    #         raise BaseException('form_valid_csv mode error.')
 
     def validate_on_split(self, model, data_provider, split):
         t0 = time.time()
@@ -166,3 +179,11 @@ class NormalNNTrainer(NormalTrainer):
             'pred_feas': np.concatenate(preds) if isinstance(preds, list) else preds
         }
         return res
+
+    def detect_loss_explosion(self, loss):
+        if loss > self.smooth_train_loss * 100:
+            message = 'Aborting, loss seems to exploding. try to run gradient check or lower the learning rate.'
+            self.log_train_message(message)
+            return False
+        # self.smooth_train_cost = loss
+        return True

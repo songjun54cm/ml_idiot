@@ -23,9 +23,7 @@ class BasicTrainer(object):
         super(BasicTrainer, self).__init__()
         self.config = config
         self.loss_scale = config.get('loss_scale', 1.0)
-        self.optimizer = None
-        self.tester = None
-        self.smooth_train_loss = float('inf')
+        # self.tester = None
         self.train_log_file = None
         self.train_log_csv_file = None
         self.valid_log_file = None
@@ -33,27 +31,41 @@ class BasicTrainer(object):
         self.last_save_model_file_path = None
         self.top_performance_message = None
         self.top_performance_csv_message = None
-        self.metrics = config.get("metrics")
-        self.top_metric = 0.0
         self.top_metric_name = config.get("top_metric")
         self.top_performance_valid_res = None
 
-        self.valid_sample_count = 0
-        self.valid_iter = config.get("valid_iter", None)
-        self.valid_sample_num = None
-
-    def prepare_trainer(self, tester, dp=None):
+    def prepare_trainer(self, solver):
+        tester = solver.tester
         if self.top_metric_name is None:
             self.top_metric_name = tester.get_top_metric()
 
-    @abc.abstractmethod
     def train(self, model, data_provider, tester):
         """
-        train model, data comes from data provider
-        :param model:   model to be trained
-        :param data_provider:   provide data
-        :param tester:  tester
-        :return: None
+        train model using data provider
+        :param model:
+        :param data_provider:
+        :param tester:
+        :return:    None
+        """
+        self.create_out_folder()
+        self.create_log_files()
+        self.create_checkpoint_dir()
+        self.log_train_message(json.dumps(self.config, indent=2), file_name='model_config.txt')
+
+        self.train_model(model, data_provider, tester)
+
+        self.log_valid_csv_message(self.top_performance_csv_message, 'top_performance_log.csv')
+        self.log_train_message(self.top_performance_message)
+        return self.last_save_model_file_path, self.top_performance_valid_res
+
+    @abc.abstractmethod
+    def train_model(self, model, data_provider, tester):
+        """
+        train the model
+        :param model:
+        :param data_provider:
+        :param tester:
+        :return:  None
         """
         raise NotImplementedError
 
@@ -147,14 +159,6 @@ class BasicTrainer(object):
         if file_name is not None:
             log_to_file(message, file_name, self.config['out_folder'])
 
-    def detect_loss_explosion(self, loss):
-        if loss > self.smooth_train_loss * 100:
-            message = 'Aborting, loss seems to exploding. try to run gradient check or lower the learning rate.'
-            self.log_train_message(message)
-            return False
-        # self.smooth_train_cost = loss
-        return True
-
     def create_checkpoint_dir(self):
         """
         create checkpoint folder in outfolder/checkpint
@@ -168,21 +172,9 @@ class BasicTrainer(object):
 
     def save_or_not(self, res, model, valid_csv_message=None, validate_res=None):
         save_tag, cp_suffix = self.detect_to_save(res, model)
-        modelcp_prefix = 'model_checkpoint_%s_%s' % (self.config['model_name'], self.config['data_set_name'])
-        model_file_name = '%s_%s' % (modelcp_prefix, cp_suffix)
         # print save_tag
         if save_tag:
-            model_file_path = os.path.join(self.config['checkpoint_out_dir'], model_file_name)
-            model.save(model_file_path)
-            message = 'save checkpoint models in %s.' % model_file_path
-            self.log_train_message(message)
-            self.log_valid_csv_message(message)
-            self.log_valid_csv_message('\n')
-            self.last_save_model_file_path = model_file_path
-            if valid_csv_message is not None:
-                self.top_performance_csv_message = valid_csv_message
-            if validate_res is not None:
-                self.top_performance_valid_res = validate_res
+            self.save_model(model, cp_suffix, valid_csv_message, validate_res)
 
     def detect_to_save(self, res, model):
         metric_score = res['metrics'].get(self.top_metric_name)
@@ -194,6 +186,22 @@ class BasicTrainer(object):
         # cp_sufix = 'accuracy_%.3f_tt_%.3f_.pkl' % (accuracy, truetrue)
         cp_sufix = '%s_%.6f.%s' % (self.top_metric_name, metric_score, model.save_ext)
         return save_tag, cp_sufix
+
+    def save_model(self, model, cp_suffix, valid_csv_message=None, validate_res=None):
+        modelcp_prefix = 'model_checkpoint_%s_%s' % (self.config['model_name'], self.config['data_set_name'])
+        model_file_name = '%s_%s' % (modelcp_prefix, cp_suffix)
+        model_file_path = os.path.join(self.config['checkpoint_out_dir'], model_file_name)
+        model.save(model_file_path)
+        message = 'save checkpoint models in %s.' % model_file_path
+        self.log_train_message(message)
+        self.log_valid_csv_message(message)
+        self.log_valid_csv_message('\n')
+        self.last_save_model_file_path = model_file_path
+        if valid_csv_message is not None:
+            self.top_performance_csv_message = valid_csv_message
+        if validate_res is not None:
+            self.top_performance_valid_res = validate_res
+
 
     def form_valid_message(self, res):
         def from_split_valid_message(split_res):
