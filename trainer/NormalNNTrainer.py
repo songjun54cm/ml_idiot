@@ -9,33 +9,31 @@ class NormalNNTrainer(NormalTrainer):
     def __init__(self, config):
         super(NormalNNTrainer, self).__init__(config)
         self.iter_count = 0
-        self.max_epoch = config['model_config']['num_epoch']
-        self.batch_size = config['model_config']['batch_size']
+        self.max_epoch = config['max_epoch']
+        self.batch_size = config['batch_size']
         self.train_size = None
         self.sample_count = 0
         self.smooth_rate = None
         self.to_valid_mode = config.get('to_valid_mode', 'num_epoch') # mode: num_epoch/num_iter/num_sample
         self.valid_epoch_stride = config.get('valid_epoch_stride', 1)
 
-
-
     def setup_train_state(self, data_provider):
-        self.train_size = data_provider.split_size('train')
-        v_num1 = int(self.train_size * self.valid_epoch_stride) if self.valid_epoch_stride is not None else self.train_size
-        v_num2 = int(self.batch_size * self.valid_iter) if self.valid_iter is not None else self.train_size
-        self.valid_sample_num = min(v_num1, v_num2)
-        logging.info('valid sample number: %d' % self.valid_sample_num)
+        if self.valid_sample_num is None:
+            self.train_size = data_provider.split_size('train')
+            self.batch_size = self.config.get("batch_size", self.train_size)
+            v_num1 = int(self.train_size * self.valid_epoch_stride) if self.valid_epoch_stride is not None else self.train_size
+            v_num2 = int(self.batch_size * self.valid_iter) if self.valid_iter is not None else self.train_size
+            self.valid_sample_num = min(v_num1, v_num2)
+            logging.info('valid sample number: %d' % self.valid_sample_num)
+        else:
+            pass
 
     def train_model(self, model, data_provider, tester):
-        if (self.valid_sample_num is None):
-            self.setup_train_state(data_provider)
+        self.setup_train_state(data_provider)
         self.train_size = data_provider.split_size('train')
         for epoch_i in range(self.max_epoch):
             for batch_data in data_provider.iter_train_batches(self.batch_size):
                 self.train_one_batch(model, batch_data, epoch_i)
-                batch_loss, score_loss, regu_loss = model.train_batch(batch_data)
-                logging.info('Epoch %d/%d, Batch Loss: %f, Score Loss %f, Regu Loss %f' %
-                             (epoch_i, self.max_epoch, batch_loss, score_loss, regu_loss) )
                 # validation
                 if self.to_validate(epoch_i):
                     # self.valid_sample_count = 0

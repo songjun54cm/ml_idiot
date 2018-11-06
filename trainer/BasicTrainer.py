@@ -42,7 +42,7 @@ class BasicTrainer(object):
         self.valid_iter = config.get("valid_iter", None)
         self.valid_sample_num = None
 
-    def prepare_trainer(self, tester):
+    def prepare_trainer(self, tester, dp=None):
         if self.top_metric_name is None:
             self.top_metric_name = tester.get_top_metric()
 
