@@ -3,6 +3,8 @@ import random
 import numpy as np
 import cPickle as pickle
 from ml_idiot.utils.utils import get_data_splits
+
+
 def create_model(model_class, model_file_path):
     print 'load model from %s' % model_file_path
     with open(model_file_path, 'rb') as mf:

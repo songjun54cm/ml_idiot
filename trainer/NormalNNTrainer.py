@@ -68,7 +68,11 @@ class NormalNNTrainer(NormalTrainer):
         self.iter_count += 1
         t0 = time.time()
 
-        batch_loss, score_loss, regu_loss = model.train_batch(batch_data)
+        batch_loss, score_loss, regu_loss, grad_params = model.train_batch(batch_data)
+        # detect loss exploding
+        if not self.detect_loss_explosion(batch_loss):
+            raise BaseException('Loss Explosion !!! ......')
+        self.optimizer.optimizer_model(model, grad_params)
 
         batch_loss *= self.loss_scale
         self.valid_sample_count += batch_size
@@ -85,9 +89,7 @@ class NormalNNTrainer(NormalTrainer):
             % (epoch_rate, self.max_epoch, self.sample_count, self.train_size, time_eclipse, score_loss, batch_loss,
                self.smooth_train_loss)
         self.log_train_csv(csv_message)
-        # detect loss exploding
-        if not self.detect_loss_explosion(batch_loss):
-            raise BaseException('Loss Explosion !!! ......')
+
 
     def update_smooth_train_loss(self, new_loss):
         # calculate smooth loss
