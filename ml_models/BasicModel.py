@@ -58,6 +58,9 @@ class BasicModel(object):
         for key in self.__dict__.keys():
             self.__dict__[key] = dict_data[key]
 
+    def get_params(self):
+        return self.params
+
     def add_params(self, shape, param_name, value_type="matrix"):
         if value_type == 'matrix':
             param_values = add_to_params(self.params, init_matrix(shape), param_name=param_name)

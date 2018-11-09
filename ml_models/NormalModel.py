@@ -18,21 +18,30 @@ class NormalModel(BasicModel):
         """
         forward one batch data
         :param batch_samples:   list of samples
-        :return:    loss, pred_vals, gth_vals
+        :return: forward_res = {
+            batch_loss:
+            score_loss:
+            regu_loss:
+            ...
+        }
         """
         raise NotImplementedError
 
     @abc.abstractmethod
-    def backward_batch(self, batch_loss, batch_data):
+    def backward_batch(self, batch_data, forward_res):
         """
         train one batch data
         :param loss:    loss
         :param batch_samples:   list of samples
-        :return:    gradient
+        :param forward_res: {}
+        :return:    gradient = {param_name:gradient_value}
         """
         raise NotImplementedError
 
     def train_batch(self, batch_data):
-        batch_loss, score_loss, regu_loss = self.forward_batch_loss(batch_data)
-        grad_params = self.backward_batch(batch_loss, batch_data)
+        forward_res = self.forward_batch_loss(batch_data)
+        batch_loss = forward_res["batch_loss"]
+        score_loss = forward_res["score_loss"]
+        regu_loss = forward_res["regu_loss"]
+        grad_params = self.backward_batch(batch_loss, batch_data, forward_res)
         return batch_loss, score_loss, regu_loss, grad_params

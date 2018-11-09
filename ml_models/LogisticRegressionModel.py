@@ -2,7 +2,23 @@ __author__ = 'JunSong<songjun@corp.netease.com>'
 # Date: 2018/11/5
 import numpy as np
 from ml_idiot.ml_models.NormalModel import NormalModel
+from gradient_check.CheckerModelGradient import CheckerModelGradient
 
+class LRGradientChecker(CheckerModelGradient):
+    def __init__(self, model):
+        x = np.random.rand(3,4)
+        y = np.asarray([1,1,0]).reshape((3,1))
+        gc_data = {"x":x,"y":y}
+        super(LRGradientChecker, self).__init__(model, gc_data)
+
+class MainTestLRGradient():
+    def __init__(self):
+        pass
+
+    def run(self):
+        config = {}
+        lr = LogisticRegressionModel(config)
+        lr.check_gradient()
 
 class LogisticRegressionModel(NormalModel):
     def __init__(self, config):
@@ -18,8 +34,44 @@ class LogisticRegressionModel(NormalModel):
         self.regularize_param_names.append(self.w_name)
 
     def forward_batch_loss(self, batch_data):
-        x = batch_data["x"]
-        y = batch_data["y"]
+        x = batch_data["x"] # x: n*d matrix
+        y = batch_data["y"] # y: n*1 array
+        s = np.dot(x, self.w) + self.b # n*d dot d*1 = n*1
+        e = np.log(np.exp(s) + 1)
+        q = y * s # n*1
+        loss = np.sum(e-q, axis=0, keepdims=False)
+        forward_res = {
+            "batch_loss": loss,
+            "score_loss": loss,
+            "regu_loss": 0.0,
+            "pred_val" : s,
+            "gth_val": y
+        }
+        return forward_res
 
+    def backward_batch(self, batch_data, forward_res):
+        x = batch_data["x"]  # x: n*d matrix
+        y = batch_data["y"]  # y: n*1 array
+        pred_val = forward_res["pred_val"]
+        gradients = {}
+        e = np.exp(pred_val)
+        gb = (e / (1 + e)) - y
+        gradients[self.w_name] = np.dot(np.transpose(x), gb)
+        gradients[self.b_name] = np.sum(gb, axis=0,keepdims=False)
+        return gradients
 
-    def backward_batch(self, batch_loss, batch_data):
+    def get_loss(self, batch_data, mode=None):
+        forward_res = self.forward_batch_loss(batch_data)
+        if(mode=="gc"):
+            grds = self.backward_batch(batch_data, forward_res)
+            return forward_res["batch_loss"], grds
+        else:
+            return forward_res["batch_loss"]
+
+    def check_gradient(self):
+        config = {
+            "fea_size": 4
+        }
+        self.create(config)
+        gChecker = LRGradientChecker(self)
+        gChecker.check_gradient()
