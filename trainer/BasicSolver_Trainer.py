@@ -169,7 +169,7 @@ class BasicSolver(object):
         elif isinstance(batch_data, np.ndarray):
             return batch_data.shape[0]
         else:
-            raise StandardError('get batch size error!')
+            raise BaseException('get batch size error!')
 
     def to_validate(self, epoch_i):
         return (self.valid_sample_count >= self.valid_sample_num) or \
@@ -194,7 +194,7 @@ class BasicSolver(object):
                 body_message += ',%f' % res['metrics'][met]
             return body_message
         else:
-            raise StandardError('form_valid_csv mode error.')
+            raise BaseException('form_valid_csv mode error.')
 
     def validate_on_split(self, model, data_provider, split):
         t0 = time.time()

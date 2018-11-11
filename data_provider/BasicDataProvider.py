@@ -131,8 +131,8 @@ class BasicDataProvider(object):
         # prepare data after load from file
         pass
 
-    def form_data(self, batch_data, options=None):
-        return batch_data
+    def form_batch_data(self, samples, options=None):
+        return samples
 
 
 if __name__ == "__main__":

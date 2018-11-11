@@ -29,6 +29,9 @@ class BasicTester(object):
     def get_top_metric(self):
         return self.evaluator.get_top_metric()
 
+    def get_metrics(self, res):
+        return self.evaluator.get_
+
     def test(self, model, data_provider, split=None):
         if split is None:
             train_res = self.validate_on_split(model, data_provider, 'train_valid')
@@ -94,11 +97,13 @@ class BasicTester(object):
         return res
 
     def test_one_batch(self, model, batch_data):
-        loss, pred_vals, gth_vals = model.loss_batch_predict(batch_data)
+        outs = model.predict_batch(batch_data)
+        preds = outs["pred_vals"]
+        gth_vals = batch_data['y']
         res = {
-            'loss': loss,
-            'sample_num': get_batch_size(batch_data),
-            'gth_vals': gth_vals,
-            'pred_vals': pred_vals
+            'loss': outs["loss"],
+            'sample_num': batch_data['batch_size'],
+            'gth_vals': np.concatenate(gth_vals) if isinstance(gth_vals, list) else gth_vals,
+            'pred_vals': np.concatenate(preds) if isinstance(preds, list) else preds
         }
         return res

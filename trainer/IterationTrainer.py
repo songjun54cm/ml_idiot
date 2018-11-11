@@ -8,15 +8,18 @@ from ml_idiot.trainer.NormalTrainer import NormalTrainer
 
 def create_optimizer(config):
     opt = config.get("optimizer", "sgd")
+    if opt=="null":
+        print("optimizer=null, do not need optimizer.")
+        return None
     logging.info("create optimizer: %s ..." % opt)
     opt_cls = getattr(importlib.import_module("ml_idiot.optimizer"), opt)
     opter = opt_cls(config)
     return opter
 
 
-class NormalNNTrainer(NormalTrainer):
+class IterationTrainer(NormalTrainer):
     def __init__(self, config):
-        super(NormalNNTrainer, self).__init__(config)
+        super(IterationTrainer, self).__init__(config)
         self.optimizer = create_optimizer(config)
         self.smooth_train_loss = float('inf')
         self.top_metric = 0.0
@@ -25,26 +28,30 @@ class NormalNNTrainer(NormalTrainer):
         self.valid_sample_num = None
         self.iter_count = 0
         self.max_epoch = config['max_epoch']
-        self.batch_size = config['batch_size']
         self.train_size = None
         self.sample_count = 0
         self.smooth_rate = None
         self.to_valid_mode = config.get('to_valid_mode', 'num_epoch') # mode: num_epoch/num_iter/num_sample
         self.valid_epoch_stride = config.get('valid_epoch_stride', 1)
+        self.tester = None
 
     def prepare_trainer(self, solver):
-        super(NormalNNTrainer, self).prepare_trainer(solver)
+        super(IterationTrainer, self).prepare_trainer(solver)
         data_provider = solver.data_provider
         self.train_size = data_provider.split_size('train')
         self.batch_size = self.config.get("batch_size", self.train_size)
+        self.valid_size = data_provider.split_size("valid")
+        self.valid_batch_size = self.config.get("valid_batch_size", self.valid_size)
         v_num1 = int(self.train_size * self.valid_epoch_stride) if self.valid_epoch_stride is not None else self.train_size
         v_num2 = int(self.batch_size * self.valid_iter) if self.valid_iter is not None else self.train_size
         self.valid_sample_num = min(v_num1, v_num2)
         self.log_train_message('valid sample number: %d' % self.valid_sample_num)
+        self.tester = solver.tester
 
     def train_model(self, model, data_provider, tester):
-        self.train_size = data_provider.split_size('train')
+        self.valid_model(model, data_provider, 0)
         for epoch_i in range(self.max_epoch):
+            self.sample_count = 0
             for batch_data in data_provider.iter_train_batches(self.batch_size):
                 self.train_one_batch(model, batch_data, epoch_i)
                 # validation
@@ -56,8 +63,11 @@ class NormalNNTrainer(NormalTrainer):
                     self.save_or_not(valid_res, model, valid_csv_message, validate_res)
 
     def to_validate(self, epoch_i):
-        return (self.valid_sample_count >= self.valid_sample_num) or \
+        flag = (self.valid_sample_count >= self.valid_sample_num) or \
            (epoch_i>=self.max_epoch-1 and self.sample_count>=self.train_size)
+        if flag:
+            self.valid_sample_count = 0
+        return flag
 
     def valid_prepare(self, model, data_provider):
         # over driver if needed.
@@ -68,11 +78,13 @@ class NormalNNTrainer(NormalTrainer):
         self.iter_count += 1
         t0 = time.time()
 
-        batch_loss, score_loss, regu_loss, grad_params = model.train_batch(batch_data)
+        train_res = model.train_batch(batch_data, self.optimizer)
+        batch_loss = train_res["batch_loss"]
+        score_loss = train_res["score_loss"]
+        regu_loss = train_res["regu_loss"]
         # detect loss exploding
         if not self.detect_loss_explosion(batch_loss):
             raise BaseException('Loss Explosion !!! ......')
-        self.optimizer.optimizer_model(model, grad_params)
 
         batch_loss *= self.loss_scale
         self.valid_sample_count += batch_size
@@ -104,7 +116,7 @@ class NormalNNTrainer(NormalTrainer):
         valid_csv_message = 'epoch_num,%d\n' % epoch_i
         # validate on the train valid data set
         train_res = self.validate_on_split(model, data_provider, split='train_valid')
-        valid_csv_message += self.form_valid_csv_message(mode='head') + '\n'
+        valid_csv_message += self.form_valid_csv_message(res=train_res, mode='head') + '\n'
         valid_csv_message += self.form_valid_csv_message(res=train_res, mode='body') + '\n'
         # validate on the validate data set
         valid_res = self.validate_on_split(model, data_provider, split='valid')
@@ -116,71 +128,11 @@ class NormalNNTrainer(NormalTrainer):
         self.log_valid_csv_message('\n')
         return train_res, valid_res, test_res, valid_csv_message
 
-    # def form_valid_csv(self, mode, res=None):
-    #     if mode == 'head':
-    #         head_message = 'sample_num,seconds,split,Loss,'+','.join(self.metrics)
-    #         return head_message
-    #     elif mode == 'body':
-    #         body_message = '%d,%.3f,%s,%f' % (res['sample_num'], res['seconds'], res['split'], res['loss'])
-    #         for met in self.metrics:
-    #             body_message += ',%f' % res['metrics'][met]
-    #         return body_message
-    #     else:
-    #         raise BaseException('form_valid_csv mode error.')
-
     def validate_on_split(self, model, data_provider, split):
-        t0 = time.time()
-        res = self.valid_split_metrics(model, data_provider, split)
-        time_eclipse = time.time() - t0
-
-        results = dict()
-        # results.update(res)
-        results['metrics'] = res['metrics']
-        results['sample_num'] = res['sample_num']
-        results['seconds'] = time_eclipse
-        results['split'] = split
-        results['loss'] = res['loss']*self.config['loss_scale']
+        results = self.tester.validate_on_split(model, data_provider, split)
         message = self.form_valid_message(results)
         self.log_train_message(message)
         return results
-
-    def valid_split_metrics(self, model, data_provider, split):
-        res = self.test_on_split(model, data_provider, split)
-        metrics = self.tester.get_metrics(res, self.metrics)
-        res['metrics'] = metrics
-        return res
-
-    def test_on_split(self, model, data_provider, split):
-        total_loss = []
-        sample_num = 0
-        gth_feas = []
-        pred_feas = []
-        for batch_data in data_provider.iter_split_batches(self.valid_batch_size, split):
-            res = self.test_one_batch(model, batch_data)
-            total_loss.append(res['loss'])
-            sample_num += res['sample_num']
-            gth_feas.append(res['gth_feas'])
-            pred_feas.append(res['pred_feas'])
-        res = {
-            'loss': np.mean(total_loss),
-            'sample_num': sample_num,
-            'gth_feas': np.concatenate(gth_feas),
-            'pred_feas': np.concatenate(pred_feas)
-        }
-        return res
-
-    def test_one_batch(self, model, batch_data):
-        outs = model.loss_pred_on_batch(batch_data['x'], batch_data['y'])
-        loss = outs[0]
-        preds = outs[1]
-        gth_feas = batch_data['y']
-        res = {
-            'loss': loss,
-            'sample_num': batch_data['batch_size'],
-            'gth_feas': np.concatenate(gth_feas) if isinstance(gth_feas, list) else gth_feas,
-            'pred_feas': np.concatenate(preds) if isinstance(preds, list) else preds
-        }
-        return res
 
     def detect_loss_explosion(self, loss):
         if loss > self.smooth_train_loss * 100:

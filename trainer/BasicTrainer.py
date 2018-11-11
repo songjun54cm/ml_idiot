@@ -118,7 +118,7 @@ class BasicTrainer(object):
     def log_message(self, message, file_name=None):
         if message is None: return
         logging.info(message)
-        if message[-1] != '\n': message += '\n'
+        message = add_new_line(message)
         self.log_train_message(message)
         self.log_valid_message(message)
         if file_name is not None:
@@ -126,8 +126,8 @@ class BasicTrainer(object):
 
     def log_train_message(self, message, file_name=None):
         if message is None: return
-        logging.info('\n'+message)
-        if message[-1] != '\n': message += '\n'
+        logging.info(message)
+        message = add_new_line(message)
         if self.train_log_file is not None:
             self.train_log_file.write(message)
             self.train_log_file.flush()
@@ -144,7 +144,7 @@ class BasicTrainer(object):
 
     def log_valid_message(self, message):
         if message is None: return
-        logging.info('\n'+message)
+        logging.info(message)
         message = add_new_line(message)
         if self.valid_log_file is not None:
             self.valid_log_file.write(message)
@@ -211,7 +211,7 @@ class BasicTrainer(object):
             message = '%s evaluate %10d %15s samples in %.3fs, Loss: %5.3f. ' \
                       % (datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                          split_res['sample_num'], split_res['split'], split_res['seconds'], split_res['loss']) + message
-            return message + '\n'
+            return message
         if 'metrics' in res:
             return from_split_valid_message(res)
         else:

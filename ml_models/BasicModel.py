@@ -23,15 +23,15 @@ class BasicModel(object):
         self.params = {}
         self.regularize_param_names = []
 
-    def loss_batch_predict(self, batch_samples):
+    def predict_batch(self, batch_samples):
         """
         predict one batch data
         :param batch_samples:   list of samples
-        :return:    loss, pred_vals, gth_vals
+        :return:    res={"loss", "pred_vals", "gth_vals"}
         """
         raise NotImplementedError
 
-    def loss_one_sample_predict(self, sample):
+    def predict_sample(self, sample):
         """
         predict one sample data with loss
         :param sample: one data sample

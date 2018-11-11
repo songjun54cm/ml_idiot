@@ -6,6 +6,9 @@ from ml_idiot.trainer.BasicTrainer import BasicTrainer
 
 
 class NormalTrainer(BasicTrainer):
+    """
+    train model by calling .train once
+    """
     def __init__(self, config):
         super(NormalTrainer, self).__init__(config)
 
