@@ -21,18 +21,18 @@ class IterationTrainer(NormalTrainer):
     def __init__(self, config):
         super(IterationTrainer, self).__init__(config)
         self.optimizer = create_optimizer(config)
+        self.max_epoch = config.get('max_epoch', 1)
+        self.to_valid_mode = config.get('to_valid_mode', 'num_epoch')  # mode: num_epoch/num_iter/num_sample
+        self.valid_epoch_stride = config.get('valid_epoch_stride', 1)
+        self.valid_iter = config.get("valid_iter", None)
         self.smooth_train_loss = float('inf')
         self.top_metric = 0.0
         self.valid_sample_count = 0
-        self.valid_iter = config.get("valid_iter", None)
         self.valid_sample_num = None
         self.iter_count = 0
-        self.max_epoch = config['max_epoch']
         self.train_size = None
         self.sample_count = 0
         self.smooth_rate = None
-        self.to_valid_mode = config.get('to_valid_mode', 'num_epoch') # mode: num_epoch/num_iter/num_sample
-        self.valid_epoch_stride = config.get('valid_epoch_stride', 1)
         self.tester = None
 
     def prepare_trainer(self, solver):
@@ -49,7 +49,8 @@ class IterationTrainer(NormalTrainer):
         self.tester = solver.tester
 
     def train_model(self, model, data_provider, tester):
-        self.valid_model(model, data_provider, 0)
+        if self.canPreValid(model):
+            self.valid_model(model, data_provider, 0)
         for epoch_i in range(self.max_epoch):
             self.sample_count = 0
             for batch_data in data_provider.iter_train_batches(self.batch_size):

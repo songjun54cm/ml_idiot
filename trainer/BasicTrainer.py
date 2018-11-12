@@ -249,3 +249,9 @@ class BasicTrainer(object):
             mesg = self.form_valid_csv_message(res, 'head')
             mesg += self.form_valid_csv_message(res, 'body')
             return mesg
+
+    def canPreValid(self, model):
+        if hasattr(model, "canPreValid"):
+            return model.canPreValid
+        else:
+            return True
