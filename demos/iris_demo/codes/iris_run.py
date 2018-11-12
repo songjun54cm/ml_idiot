@@ -21,7 +21,7 @@ def main(config):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('-d', '--data', dest='data_set_name', type=str, default='iris')
-    parser.add_argument('-m', '--model', dest='model_name', type=str, default='SJLR')
+    parser.add_argument('-m', '--model', dest='model_name', type=str, default='SKLearnLR', help="LR/SJLR/SKLearnLR")
     parser.add_argument('-f', '--file', dest='config_file', type=str, default=None)
     args = parser.parse_args()
     config = vars(args)
