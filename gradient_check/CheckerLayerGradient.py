@@ -1,8 +1,9 @@
 __author__ = 'JunSong'
 import numpy as np
-from CheckerGradient import CheckerGraident
+from ml_idiot.gradient_check.CheckerGradient import CheckerGradient
 
-class CheckerLayerGradient(CheckerGraident):
+
+class CheckerLayerGradient(CheckerGradient):
     def __init__(self, layer_class):
         super(CheckerLayerGradient, self).__init__()
         gdc_data = layer_class.gdc_data()

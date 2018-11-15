@@ -4,12 +4,14 @@ import numpy as np
 from ml_idiot.ml_models.IterationModels.IterationFBModel import IterationFBModel
 from ml_idiot.gradient_check.CheckerModelGradient import CheckerModelGradient
 
+
 class LRGradientChecker(CheckerModelGradient):
     def __init__(self, model):
         x = np.random.rand(3,4)
         y = np.asarray([1,1,0]).reshape((3,1))
         gc_data = {"x":x,"y":y}
         super(LRGradientChecker, self).__init__(model, gc_data)
+
 
 class MainTestLRGradient():
     def __init__(self):
@@ -19,6 +21,7 @@ class MainTestLRGradient():
         config = {}
         lr = LogisticRegressionModel(config)
         lr.check_gradient()
+
 
 class LogisticRegressionModel(IterationFBModel):
     def __init__(self, config):

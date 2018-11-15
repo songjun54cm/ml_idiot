@@ -2,7 +2,7 @@ __author__ = 'SongJun-Dell'
 try:
     xrange
 except NameError:
-    xrange=range
+    xrange = range
 
 
 class CheckerGradient(object):

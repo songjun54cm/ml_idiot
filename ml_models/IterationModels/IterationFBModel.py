@@ -5,14 +5,14 @@ from ml_idiot.ml_models.IterationModels import IterationModel
 
 
 class IterationFBModel(IterationModel):
-    def __init__(self,config):
+    def __init__(self, config):
         super(IterationFBModel, self).__init__(config)
 
     @abc.abstractmethod
     def forward_batch(self, batch_data):
         """
         forward one batch data
-        :param batch_samples:   list of samples
+        :param batch_data:   list of samples
         :return: forward_res = {
             batch_loss:
             score_loss:
@@ -27,7 +27,7 @@ class IterationFBModel(IterationModel):
         """
         train one batch data
         :param loss:    loss
-        :param batch_samples:   list of samples
+        :param batch_data:   list of samples
         :param forward_res: {}
         :return:    gradient = {param_name:gradient_value}
         """

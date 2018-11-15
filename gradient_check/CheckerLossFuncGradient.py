@@ -1,6 +1,8 @@
 __author__ = 'SongJun-Dell'
-from CheckerGradient import CheckerGraident
-class CheckerLossFuncGradient(CheckerGraident):
+from ml_idiot.gradient_check.CheckerGradient import CheckerGradient
+
+
+class CheckerLossFuncGradient(CheckerGradient):
     def __init__(self, act_func, grad_func, input_data):
         super(CheckerLossFuncGradient, self).__init__()
         self.loss_func = act_func

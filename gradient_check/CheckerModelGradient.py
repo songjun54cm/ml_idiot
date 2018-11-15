@@ -1,5 +1,6 @@
 __author__ = 'SongJun-Dell'
-from gradient_check.CheckerGradient import CheckerGradient
+from ml_idiot.gradient_check.CheckerGradient import CheckerGradient
+
 
 class CheckerModelGradient(CheckerGradient):
     def __init__(self, model, gc_data):
