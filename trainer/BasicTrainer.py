@@ -174,6 +174,7 @@ class BasicTrainer(object):
         save_tag, cp_suffix = self.detect_to_save(res, model)
         # print save_tag
         if save_tag:
+            model.summary()
             self.save_model(model, cp_suffix, valid_csv_message, validate_res)
 
     def detect_to_save(self, res, model):

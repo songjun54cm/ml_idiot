@@ -70,3 +70,6 @@ class BasicModel(object):
             raise BaseException('value type error.')
         return param_values, param_name
 
+    def summary(self):
+        pass
+
