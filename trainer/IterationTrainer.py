@@ -50,6 +50,7 @@ class IterationTrainer(NormalTrainer):
 
     def train_model(self, model, data_provider, tester):
         if self.canPreValid(model):
+            logging.info("pre-valid model...")
             self.valid_model(model, data_provider, 0)
         for epoch_i in range(self.max_epoch):
             self.sample_count = 0

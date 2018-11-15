@@ -40,7 +40,7 @@ class LogisticRegressionModel(IterationFBModel):
     def forward_batch(self, batch_data):
         x = batch_data["x"] # x: n*d matrix
         y = batch_data["y"] # y: n*1 array
-        s = np.dot(x, self.w) + self.b + 1e-8 # n*d dot d*1 = n*1
+        s = np.dot(x, self.w) + self.b # n*d dot d*1 = n*1
         e = np.log(np.exp(s) + 1)
         q = y * s # n*1
         loss = np.sum(e-q, axis=0, keepdims=False)
