@@ -2,7 +2,7 @@ __author__ = 'JunSong<songjun@corp.netease.com>'
 # Date: 2018/11/5
 import numpy as np
 from ml_idiot.ml_models.IterationModels.IterationFBModel import IterationFBModel
-from gradient_check.CheckerModelGradient import CheckerModelGradient
+from ml_idiot.gradient_check.CheckerModelGradient import CheckerModelGradient
 
 class LRGradientChecker(CheckerModelGradient):
     def __init__(self, model):
