@@ -52,7 +52,12 @@ def init_config(user_config):
     print('init config...')
     if user_config['config_file'] is None:
         user_config['config_file'] = '%s_%s_config' % (user_config['data_set_name'], user_config['model_name'])
-    user_config.update(getattr(importlib.import_module('configs.%s' % user_config['config_file']), 'config'))
+    default_config = getattr(importlib.import_module('configs.%s' % user_config['config_file']), 'config')
+    for k, v in user_config.items():
+        if v is not None:
+            default_config[k] = v
+    user_config = default_config
+    user_config.update()
     user_config["data_provider"] = user_config.get("data_provider", "%sDataProvider" % user_config["model_name"])
     user_config["trainer"] = user_config.get("trainer", "%sTrainer" % user_config["model_name"])
     user_config["tester"] = user_config.get("tester", "%sTester" % user_config["model_name"])
