@@ -33,7 +33,7 @@ class IterationFBModel(IterationModel):
         """
         raise NotImplementedError
 
-    def train_batch(self, batch_data, optimizer):
+    def train_batch(self, batch_data, optimizer=None):
         forward_res = self.forward_batch(batch_data)
         batch_loss = forward_res["batch_loss"]
         score_loss = forward_res["score_loss"]

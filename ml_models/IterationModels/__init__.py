@@ -12,5 +12,5 @@ class IterationModel(BasicModel):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def train_batch(self, batch_data, optimizer):
+    def train_batch(self, batch_data, optimizer=None):
         raise NotImplementedError
