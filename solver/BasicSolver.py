@@ -86,15 +86,18 @@ class BasicSolver(object):
         self.trainer.prepare_trainer(self)
 
     def run(self):
+        res = {}
         if self.config['mode'] in ['train', 'debug']:
             logging.info('start training ...')
             logging.info(json.dumps(self.config, indent=2))
             check_point_path, top_performance_res = self.trainer.train(self.model, self.data_provider, self.tester)
             logging.info('training finish.')
             logging.info('model has been saved into %s' % check_point_path)
+            res["last_check_point_path"] = check_point_path
         elif self.config['model'] == 'test':
             self.tester.test(self.model, self.data_provider)
         else:
             raise BaseException('mode error')
         logging.info('finish running.')
+        return res
 
