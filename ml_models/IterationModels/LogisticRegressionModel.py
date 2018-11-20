@@ -33,7 +33,7 @@ class LogisticRegressionModel(IterationFBModel):
 
     def create(self, config):
         self.w, self.w_name = self.add_params((config["fea_size"], 1), "w")
-        self.w.fill(1.0)
+        # self.w.fill(1.0)
         self.b, self.b_name = self.add_params((1,), "b")
         self.regularize_param_names.append(self.w_name)
 
@@ -43,7 +43,7 @@ class LogisticRegressionModel(IterationFBModel):
         s = np.dot(x, self.w) + self.b # n*d dot d*1 = n*1
         e = np.log(np.exp(s) + 1)
         q = y * s # n*1
-        loss = np.sum(e-q, axis=0, keepdims=False)
+        loss = np.mean(e-q, axis=0, keepdims=False)
         forward_res = {
             "batch_loss": loss,
             "score_loss": loss,
