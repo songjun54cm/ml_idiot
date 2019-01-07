@@ -5,6 +5,9 @@ from ml_idiot.ml_models.IterationModels import IterationModel
 
 
 class IterationFBModel(IterationModel):
+    """
+    Iteration Forward & Backward Model
+    """
     def __init__(self, config):
         super(IterationFBModel, self).__init__(config)
 
