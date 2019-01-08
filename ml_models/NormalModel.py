@@ -17,6 +17,20 @@ class NormalModel(BasicModel):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def train(self, train_data):
+    def train(self, train_data, valid_data=None, test_data=None):
         raise NotImplementedError
+
+    @abc.abstractmethod
+    def predict_batch(self, batch_data):
+        """
+        predict result of one batch data
+        :param batch_data:
+        :return: res = {
+            "loss": batch_loss,
+            "pred_vals": pred_vals,
+            "gth_vals": gth_vals
+        }
+        """
+        raise NotImplementedError
+
 

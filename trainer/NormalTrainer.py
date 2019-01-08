@@ -19,7 +19,7 @@ class NormalTrainer(BasicTrainer):
         :param data_provider:   provide data
         :return:    None
         """
-        model.train(data_provider.get_split('train'))
+        model.train(data_provider.get_split('train'), data_provider.get_split("valid"), data_provider.get_split("test"))
         res = tester.test(model, data_provider)
         self.top_performance_csv_message = self.form_valid_csv_message(res)
         self.top_performance_message = self.form_valid_message(res)

@@ -99,10 +99,10 @@ class BasicTester(object):
     def test_one_batch(self, model, batch_data):
         outs = model.predict_batch(batch_data)
         preds = outs["pred_vals"]
-        gth_vals = batch_data['y']
+        gth_vals = outs['gth_vals']
         res = {
             'loss': outs["loss"],
-            'sample_num': batch_data['batch_size'],
+            'sample_num': outs['batch_size'],
             'gth_vals': np.concatenate(gth_vals) if isinstance(gth_vals, list) else gth_vals,
             'pred_vals': np.concatenate(preds) if isinstance(preds, list) else preds
         }

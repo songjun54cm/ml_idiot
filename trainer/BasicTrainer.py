@@ -212,11 +212,11 @@ class BasicTrainer(object):
             message = '%s evaluate %10d %15s samples in %.3fs, Loss: %5.3f. ' \
                       % (datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                          split_res['sample_num'], split_res['split'], split_res['seconds'], split_res['loss']) + message
-            return message
+            return message + "\n"
         if 'metrics' in res:
             return from_split_valid_message(res)
         else:
-            mesg = ''
+            mesg = '\n'
             for key,val in res.items():
                 mesg += from_split_valid_message(val)
             return mesg

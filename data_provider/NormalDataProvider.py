@@ -50,7 +50,7 @@ class NormalDataProvider(BasicDataProvider):
         }
 
     def get_split(self, split):
-        return self.splits[split]
+        return self.splits.get(split, None)
 
     def split_size(self, split):
         if isinstance(self.splits[split], list):
@@ -68,7 +68,7 @@ class NormalDataProvider(BasicDataProvider):
         if shuffle:
             rng.shuffle(idxs)
         split_datas = self.splits[split]
-        if batch_size is None:
+        if batch_size is None or batch_size <= 0:
             yield self.form_batch_data([split_datas[id] for id in idxs], opts)
         else:
             if mode == 'ordered':
