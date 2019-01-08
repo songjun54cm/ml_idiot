@@ -1,4 +1,4 @@
-__author__ = 'JunSong<songjun@corp.netease.com>'
+__author__ = 'JunSong<songjun54cm@gmail.com>'
 # Date: 2018/11/5
 import numpy as np
 from ml_idiot.ml_models.IterationModels.IterationFBModel import IterationFBModel

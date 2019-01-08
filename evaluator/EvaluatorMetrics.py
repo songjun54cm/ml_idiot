@@ -1,4 +1,4 @@
-__author__ = 'JunSong<songjun@corp.netease.com>'
+__author__ = 'JunSong<songjun54cm@gmail.com>'
 # Date: 2018/11/2
 import argparse
 
