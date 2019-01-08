@@ -7,7 +7,7 @@ from data_provider.NormalDataProvider import NormalDataProvider
 class LgbmGbdtDataProvider(NormalDataProvider):
     def __init__(self):
         super(LgbmGbdtDataProvider, self).__init__()
-    self.split_ratios = [0.8, 0.1, 0.1]
+        self.split_ratios = [0.8, 0.1, 0.1]
 
     def load_raw_data_samples(self, config):
         from sklearn.datasets import load_iris

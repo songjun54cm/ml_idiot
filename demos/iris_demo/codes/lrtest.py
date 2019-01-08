@@ -2,6 +2,7 @@ __author__ = 'JunSong<songjun54cm@gmail.com>'
 import argparse
 from ml_models.IterationModels.LogisticRegressionModel import LogisticRegressionModel
 
+
 def main(config):
     lr = LogisticRegressionModel(config)
     lr.check_gradient()

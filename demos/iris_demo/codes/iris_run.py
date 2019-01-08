@@ -2,8 +2,8 @@ __author__ = 'JunSong<songjun54cm@gmail.com>'
 import argparse
 import importlib
 import logging
-from ml_idiot.solver.BasicSolver import BasicSolver as Solver
-from settings import PROJECT_HOME
+from solver.BasicSolver import BasicSolver as Solver
+from demos.iris_demo.codes.settings import PROJECT_HOME
 
 
 logging.basicConfig(
@@ -21,7 +21,7 @@ def main(config):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('-d', '--data', dest='data_set_name', type=str, default='iris')
-    parser.add_argument('-m', '--model', dest='model_name', type=str, default='SKLearnLR', help="LR/SJLR/SKLearnLR")
+    parser.add_argument('-m', '--model', dest='model_name', type=str, default='LgbmGbdt', help="LR/SJLR/SKLearnLR/LgbmGbdt")
     parser.add_argument('-f', '--file', dest='config_file', type=str, default=None)
     args = parser.parse_args()
     config = vars(args)
