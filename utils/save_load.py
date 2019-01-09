@@ -36,7 +36,8 @@ pk_dump = pickle_dump
 pkl_dump = pickle_dump
 
 
-def data_dump(data, target_path):
+def data_dump(data, fpath):
+    target_path = os.path.abspath(fpath)
     if isinstance(data, dict):
         assert '.' not in target_path, 'target path should be a path for a directory.'
         f = open(os.path.join(target_path, 'info.txt'), 'w')
