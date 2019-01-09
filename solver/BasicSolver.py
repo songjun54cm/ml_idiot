@@ -2,8 +2,8 @@ __author__ = 'JunSong<songjun54cm@gmail.com>'
 import importlib
 import json
 import logging
+import os
 from ml_idiot.utils.utils import update_config
-
 
 
 def form_name(val, suffix):
@@ -58,6 +58,8 @@ def init_config(user_config):
             default_config[k] = v
     user_config = default_config
     user_config.update()
+    if "proj_folder" not in user_config:
+        user_config["proj_folder"] = os.path.abspath("..")
     user_config["data_provider"] = user_config.get("data_provider", "%sDataProvider" % user_config["model_name"])
     user_config["trainer"] = user_config.get("trainer", "%sTrainer" % user_config["model_name"])
     user_config["tester"] = user_config.get("tester", "%sTester" % user_config["model_name"])

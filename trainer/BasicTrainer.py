@@ -53,6 +53,8 @@ class BasicTrainer(object):
         self.log_train_message(json.dumps(self.config, indent=2), file_name='model_config.txt')
 
         self.train_model(model, data_provider, tester)
+        model_summary = model.summary()
+        logging.info("model summary: %s" % model_summary)
 
         self.log_valid_csv_message(self.top_performance_csv_message, 'top_performance_log.csv')
         self.log_train_message(self.top_performance_message)
@@ -171,13 +173,16 @@ class BasicTrainer(object):
             os.makedirs(self.config['checkpoint_out_dir'])
 
     def save_or_not(self, res, model, valid_csv_message=None, validate_res=None):
-        save_tag, cp_suffix = self.detect_to_save(res, model)
+        valid_res = res.get("valid", None)
+        save_tag, cp_suffix = self.detect_to_save(valid_res, model)
         # print save_tag
         if save_tag:
             model.summary()
             self.save_model(model, cp_suffix, valid_csv_message, validate_res)
 
     def detect_to_save(self, res, model):
+        if res is None:
+            return False, None
         metric_score = res['metrics'].get(self.top_metric_name)
         if metric_score > self.top_metric:
             self.top_metric = metric_score

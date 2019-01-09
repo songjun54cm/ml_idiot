@@ -7,7 +7,8 @@ from ml_idiot.trainer.NormalTrainer import NormalTrainer
 
 
 def create_optimizer(config):
-    opt = config.get("optimizer", "sgd")
+    opt = config.get("optimizer", "null")
+    # opt = config.get("optimizer", "sgd")
     if opt=="null":
         print("optimizer=null, do not need optimizer.")
         return None
@@ -59,10 +60,8 @@ class IterationTrainer(NormalTrainer):
                 # validation
                 if self.to_validate(epoch_i):
                     # self.valid_sample_count = 0
-                    train_res, valid_res, test_res, valid_csv_message = self.valid_model(model, data_provider, epoch_i)
-                    validate_res = {'train': train_res, 'valid': valid_res, 'test': test_res}
-
-                    self.save_or_not(valid_res, model, valid_csv_message, validate_res)
+                    validate_res, valid_csv_message = self.valid_model(model, data_provider, epoch_i)
+                    self.save_or_not(validate_res, model, valid_csv_message)
 
     def to_validate(self, epoch_i):
         flag = (self.valid_sample_count >= self.valid_sample_num) or \
@@ -116,19 +115,25 @@ class IterationTrainer(NormalTrainer):
 
     def valid_model(self, model, data_provider, epoch_i):
         valid_csv_message = 'epoch_num,%d\n' % epoch_i
+        validate_res = {}
         # validate on the train valid data set
-        train_res = self.validate_on_split(model, data_provider, split='train_valid')
-        valid_csv_message += self.form_valid_csv_message(res=train_res, mode='head') + '\n'
-        valid_csv_message += self.form_valid_csv_message(res=train_res, mode='body') + '\n'
+        if data_provider.has_split("train_valid"):
+            train_res = self.validate_on_split(model, data_provider, split='train_valid')
+            valid_csv_message += self.form_valid_csv_message(res=train_res, mode='head') + '\n'
+            valid_csv_message += self.form_valid_csv_message(res=train_res, mode='body') + '\n'
+            validate_res['train'] = train_res
         # validate on the validate data set
-        valid_res = self.validate_on_split(model, data_provider, split='valid')
-        valid_csv_message += self.form_valid_csv_message(res=valid_res, mode='body') + '\n'
+        if data_provider.has_split("valid"):
+            valid_res = self.validate_on_split(model, data_provider, split='valid')
+            valid_csv_message += self.form_valid_csv_message(res=valid_res, mode='body') + '\n'
+            validate_res['valid'] = valid_res
         # validate on the test data set
         test_res = self.validate_on_split(model, data_provider, split='test')
         valid_csv_message += self.form_valid_csv_message(res=test_res, mode='body') + '\n'
+        validate_res['test'] = test_res
         self.log_valid_csv_message(valid_csv_message)
         self.log_valid_csv_message('\n')
-        return train_res, valid_res, test_res, valid_csv_message
+        return validate_res, valid_csv_message
 
     def validate_on_split(self, model, data_provider, split):
         results = self.tester.validate_on_split(model, data_provider, split)

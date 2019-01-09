@@ -34,10 +34,15 @@ class BasicTester(object):
 
     def test(self, model, data_provider, split=None):
         if split is None:
-            train_res = self.validate_on_split(model, data_provider, 'train_valid')
-            valid_res = self.validate_on_split(model, data_provider, 'valid')
+            test_result = {}
+            if data_provider.has_split("train_valid"):
+                train_res = self.validate_on_split(model, data_provider, 'train_valid')
+                test_result["train"] = train_res
+            if data_provider.has_split("valid"):
+                valid_res = self.validate_on_split(model, data_provider, 'valid')
+                test_result["valid"] = valid_res
             test_res = self.validate_on_split(model, data_provider, 'test')
-            test_result = {'train': train_res, 'valid': valid_res, 'test': test_res}
+            test_result['test'] = test_res
         else:
             res = self.validate_on_split(model, data_provider, split)
             test_result = {split: res}
